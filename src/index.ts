@@ -1,4 +1,6 @@
 import express from "express";
+import dotenv from "dotenv";
+dotenv.config(); // Load .env to process.env object
 import userRouter from "./routes/user";
 
 const app = express();
