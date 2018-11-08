@@ -1,0 +1,37 @@
+{
+  "name": "the-student-food-forum",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node ./src/index.ts",
+    "test": "jest",
+    "test-watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FilipAndersson245/The-Student-food-forum.git"
+  },
+  "keywords": [
+    "API"
+  ],
+  "author": "Filip Andersson, Marcus Gullstrand",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FilipAndersson245/The-Student-food-forum/issues"
+  },
+  "homepage": "https://github.com/FilipAndersson245/The-Student-food-forum#readme",
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/jest": "^23.3.9",
+    "@types/node": "^10.12.3",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.4",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.6"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "ts-node": "^7.0.1"
+  }
+}
