@@ -1,6 +1,6 @@
 import { createConnection } from "typeorm";
 
-export const connection = async () =>
+export const GetConnection = async () =>
   await createConnection({
     type: "mysql",
     host: process.env.TYPEORM_HOST,
@@ -9,4 +9,6 @@ export const connection = async () =>
     password: process.env.TYPEORM_PASSWORD,
     logging: !!process.env.LOGGING,
     entities: [process.env.TYPEORM_ENTITIES!]
+  }).catch((err) => {
+    throw new Error(err);
   });
