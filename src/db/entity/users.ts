@@ -1,19 +1,23 @@
-import { Entity, Column, PrimaryColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class User {
-  @PrimaryColumn({ readonly: true })
+export class Users {
+  @PrimaryGeneratedColumn("uuid")
+  @Column({ type: "char", width: 36, readonly: true, unique: true })
   public id!: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 32, unique: true })
   public Nickname!: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 255, unique: true })
   public Email!: string;
 
-  @Column()
+  @Column({ type: "char", length: 32 })
   public hash!: string;
 
-  @Column()
+  @Column({ type: "char", length: 32, nullable: true })
   public image!: string;
+
+  @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
+  public updatedAt!: string;
 }
