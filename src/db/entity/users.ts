@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Receipts } from "./receipts";
 
 @Entity()
 export class Users {
@@ -20,4 +21,7 @@ export class Users {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
+
+  @OneToMany((_type) => Receipts, (receipts) => receipts.author)
+  public receipts!: Array<Receipts>;
 }

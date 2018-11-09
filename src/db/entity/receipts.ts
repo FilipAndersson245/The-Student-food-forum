@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Users } from "./users";
 
 @Entity()
 export class Receipts {
@@ -17,4 +18,7 @@ export class Receipts {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
+
+  @ManyToOne((_type) => Users, (users) => users.receipts)
+  public author!: Users;
 }
