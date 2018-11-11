@@ -1,5 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, PrimaryColumn, OneToMany } from "typeorm";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  PrimaryColumn,
+  OneToMany
+} from "typeorm";
 import { Comments } from "./comments";
+import { Votes } from "./votes";
 
 @Entity()
 export class Users {
@@ -30,4 +37,7 @@ export class Users {
 
   @OneToMany((_type) => Comments, (comments) => comments.users)
   public comments!: Array<Comments>;
+
+  @OneToMany((_type) => Votes, (votes) => votes.userId)
+  public votes!: Array<Comments>;
 }
