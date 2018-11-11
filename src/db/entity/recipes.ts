@@ -4,10 +4,13 @@ import {
   Column,
   PrimaryColumn,
   OneToMany,
-  ManyToOne
+  ManyToOne,
+  ManyToMany
 } from "typeorm";
 import { Comments } from "./comments";
 import { Users } from "./users";
+import { Votes } from "./votes";
+import { Tags } from "./Tags";
 
 @Entity()
 export class Recipes {
@@ -32,4 +35,10 @@ export class Recipes {
 
   @ManyToOne((_type) => Users, (users) => users.id)
   public users!: Users;
+
+  @OneToMany((_type) => Votes, (votes) => votes.recieptId)
+  public votes!: Array<Votes>;
+
+  @ManyToMany((_type) => Tags, (tags) => tags.id)
+  public tags!: Array<Tags>;
 }
