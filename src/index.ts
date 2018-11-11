@@ -5,6 +5,7 @@ import userRouter from "./routes/usersRoute";
 import { GetConnection } from "./db/getConnection";
 import { Users } from "./db/entity/users";
 import votesRouter from "./routes/votesRouter";
+import tagsRouter from "./routes/tagsRouter";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,4 +23,5 @@ app.get("/", async (_req, res) => {
 app.use("/users", userRouter);
 app.use("/votes", votesRouter);
 app.use("/comments", votesRouter);
+app.use("/tags", tagsRouter);
 app.listen(port, () => console.log("started!"));
