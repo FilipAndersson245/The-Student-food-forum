@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, PrimaryColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, PrimaryColumn, OneToMany } from "typeorm";
+import { Comments } from "./comments";
 
 @Entity()
 export class Users {
@@ -26,4 +27,7 @@ export class Users {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
+
+  @OneToMany((_type) => Comments, (comments) => comments.users)
+  public comments!: Array<Comments>;
 }
