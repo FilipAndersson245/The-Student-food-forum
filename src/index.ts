@@ -4,6 +4,7 @@ dotenv.config(); // Load .env to process.env object
 import userRouter from "./routes/usersRoute";
 import { GetConnection } from "./db/getConnection";
 import { Users } from "./db/entity/users";
+import votesRouter from "./routes/votesRouter";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,4 +19,5 @@ app.get("/", async (_req, res) => {
   res.send("Hello world");
 });
 app.use("/users", userRouter);
+app.use("/votes", votesRouter);
 app.listen(port, () => console.log("started!"));
