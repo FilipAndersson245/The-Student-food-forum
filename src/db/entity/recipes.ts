@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  PrimaryColumn,
+  OneToMany
+} from "typeorm";
+import { Comments } from "./comments";
 
 @Entity()
 export class Recipes {
@@ -17,4 +24,7 @@ export class Recipes {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
+
+  @OneToMany((_type) => Comments, (comments) => comments.recipes)
+  public comments!: Array<Comments>;
 }

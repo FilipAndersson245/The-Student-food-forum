@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  PrimaryColumn,
+  ManyToOne
+} from "typeorm";
 import { Recipes } from "./recipes";
 
 @Entity()
@@ -12,4 +18,7 @@ export class Comments {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
+
+  @ManyToOne((_type) => Recipes, (recipes) => recipes.comments)
+  public recipes!: Recipes;
 }
