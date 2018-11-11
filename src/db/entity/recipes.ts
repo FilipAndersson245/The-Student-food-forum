@@ -3,9 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   PrimaryColumn,
-  OneToMany
+  OneToMany,
+  ManyToOne
 } from "typeorm";
 import { Comments } from "./comments";
+import { Users } from "./users";
 
 @Entity()
 export class Recipes {
@@ -27,4 +29,7 @@ export class Recipes {
 
   @OneToMany((_type) => Comments, (comments) => comments.recipes)
   public comments!: Array<Comments>;
+
+  @ManyToOne((_type) => Users, (users) => users.id)
+  public users!: Users;
 }
