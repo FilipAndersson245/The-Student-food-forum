@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from "typeorm";
 
 @Entity()
-export class Receipts {
+export class Recipes {
   @PrimaryGeneratedColumn("uuid")
   @PrimaryColumn({ type: "char", length: 36, primary: true })
   public id!: string;

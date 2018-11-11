@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from "typeorm";
-import { Receipts } from "./recipes";
+import { Recipes } from "./recipes";
 
 @Entity()
 export class Comments {
