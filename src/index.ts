@@ -18,6 +18,8 @@ app.get("/", async (_req, res) => {
   await connection.manager.save(user).catch((err) => console.error(err));
   res.send("Hello world");
 });
+
 app.use("/users", userRouter);
 app.use("/votes", votesRouter);
+app.use("/comments", votesRouter);
 app.listen(port, () => console.log("started!"));
