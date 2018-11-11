@@ -8,7 +8,9 @@ export const GetConnection = async () =>
     username: process.env.TYPEORM_USERNAME,
     password: process.env.TYPEORM_PASSWORD,
     logging: !!process.env.LOGGING,
-    entities: [process.env.TYPEORM_ENTITIES!]
+    entities: [process.env.TYPEORM_ENTITIES!],
+    database: process.env.TYPEORM_DATABASE,
+    synchronize: true // Run this update db
   }).catch((err) => {
     throw new Error(err);
   });

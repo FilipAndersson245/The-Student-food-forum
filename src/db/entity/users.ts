@@ -1,13 +1,18 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { Receipts } from "./receipts";
+import { Entity, Column, PrimaryGeneratedColumn, PrimaryColumn } from "typeorm";
 
 @Entity()
 export class Users {
   @PrimaryGeneratedColumn("uuid")
-  @Column({ type: "char", width: 36, readonly: true, unique: true })
+  @PrimaryColumn({
+    type: "char",
+    width: 36,
+    readonly: true,
+    unique: true,
+    primary: true
+  })
   public id!: string;
 
-  @Column({ type: "varchar", length: 32, unique: true })
+  @Column({ type: "varchar", length: 32, unique: true, primary: true })
   public Nickname!: string;
 
   @Column({ type: "varchar", length: 255, unique: true })
@@ -21,7 +26,4 @@ export class Users {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
-
-  @OneToMany((_type) => Receipts, (receipts) => receipts.author)
-  public receipts!: Array<Receipts>;
 }

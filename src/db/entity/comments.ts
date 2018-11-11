@@ -1,9 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from "typeorm";
 
 @Entity()
 export class Comments {
   @PrimaryGeneratedColumn("uuid")
-  @Column({ type: "char", length: 36 })
+  @PrimaryColumn({ type: "char", length: 36, primary: true })
   public id!: string;
 
   @Column({ type: "varchar", length: 512 })

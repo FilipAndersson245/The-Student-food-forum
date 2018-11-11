@@ -1,10 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
-import { Users } from "./users";
+import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from "typeorm";
 
 @Entity()
 export class Receipts {
   @PrimaryGeneratedColumn("uuid")
-  @Column({ type: "char", length: 36 })
+  @PrimaryColumn({ type: "char", length: 36, primary: true })
   public id!: string;
 
   @Column({ type: "varchar", length: 4096 })
@@ -18,7 +17,4 @@ export class Receipts {
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
-
-  @ManyToOne((_type) => Users, (users) => users.receipts)
-  public author!: Users;
 }

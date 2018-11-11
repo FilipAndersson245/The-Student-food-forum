@@ -2,10 +2,20 @@ import express from "express";
 import dotenv from "dotenv";
 dotenv.config(); // Load .env to process.env object
 import userRouter from "./routes/user";
+import { GetConnection } from "./db/getConnection";
+import { Users } from "./db/entity/users";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get("/", (_req, res) => res.send("Hello world"));
+app.get("/", async (_req, res) => {
+  const connection = await GetConnection();
+  const user = new Users();
+  user.Email = "123@gmail.com";
+  user.hash = "adapjosfoidsvo5";
+  user.Nickname = "Tommy";
+  await connection.manager.save(user).catch((err) => console.error(err));
+  res.send("Hello world");
+});
 app.use("/users", userRouter);
 app.listen(port, () => console.log("started!"));
