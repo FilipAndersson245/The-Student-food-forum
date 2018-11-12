@@ -39,6 +39,6 @@ export class Recipes {
   @OneToMany((_type) => Votes, (votes) => votes.recieptId)
   public votes!: Array<Votes>;
 
-  @ManyToMany((_type) => Tags, (tags) => tags.id)
+  @ManyToMany((_type) => Tags, (tags) => tags.recipes)
   public tags!: Array<Tags>;
 }
