@@ -2,7 +2,7 @@ import express = require("express");
 
 const tagsRouter = express.Router();
 
-tagsRouter.get("/", (_req, res) => {
+tagsRouter.get("/", async (_req, res) => {
   res.send(200);
 });
 

@@ -2,11 +2,11 @@ import express = require("express");
 
 const commentsRouter = express.Router();
 
-commentsRouter.get("/", (_req, res) => {
+commentsRouter.get("/", async (_req, res) => {
   res.send(200);
 });
 
-commentsRouter.post("/", (_req, res) => {
+commentsRouter.post("/", async (_req, res) => {
   res.send(200);
 });
 

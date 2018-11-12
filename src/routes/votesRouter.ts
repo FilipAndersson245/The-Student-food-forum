@@ -2,11 +2,11 @@ import express = require("express");
 
 const votesRouter = express.Router();
 
-votesRouter.get("/", (_req, res) => {
+votesRouter.get("/", async (_req, res) => {
   res.send(200);
 });
 
-votesRouter.post("/", (_req, res) => {
+votesRouter.post("/", async (_req, res) => {
   res.send(200);
 });
 

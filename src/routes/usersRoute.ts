@@ -2,11 +2,11 @@ import express = require("express");
 
 const userRouter = express.Router();
 
-userRouter.get("/", (_req, res) => {
+userRouter.get("/", async (_req, res) => {
   res.send(200);
 });
 
-userRouter.post("/", (_req, res) => {
+userRouter.post("/", async (_req, res) => {
   res.send(200);
 });
 
