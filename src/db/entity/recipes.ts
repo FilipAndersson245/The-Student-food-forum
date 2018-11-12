@@ -10,7 +10,7 @@ import {
 import { Comments } from "./comments";
 import { Users } from "./users";
 import { Votes } from "./votes";
-import { Tags } from "./Tags";
+import { Tags } from "./tags";
 
 @Entity()
 export class Recipes {
