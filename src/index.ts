@@ -11,7 +11,13 @@ import morgan from "morgan";
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(morgan("dev"));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+  import("errorhandler").then((errorHandler) =>
+    app.use(errorHandler.default())
+  );
+}
+
 app.use(bodyparser.json());
 app.use("/users", userRouter);
 app.use("/votes", votesRouter);
