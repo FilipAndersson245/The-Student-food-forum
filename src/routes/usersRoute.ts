@@ -5,7 +5,7 @@ import { getRepository } from "typeorm";
 const userRouter = express.Router();
 
 userRouter.get("/", async (_req, res) => {
-  res.send(200);
+  res.sendStatus(200);
 });
 
 userRouter.post("/", async (_req, res) => {
@@ -17,23 +17,23 @@ userRouter.post("/", async (_req, res) => {
   user.nickname = "bob12345";
 
   await repo.insert(user).then(console.error);
-  res.send(200);
+  res.sendStatus(200);
 });
 
 userRouter.delete("/{userId}", async (_req, res) => {
-  res.send(200);
+  res.sendStatus(200);
 });
 
 userRouter.put("/{userId}", async (_req, res) => {
-  res.send(200);
+  res.sendStatus(200);
 });
 
 userRouter.post("/login", async (_req, res) => {
-  res.send(200);
+  res.sendStatus(200);
 });
 
 userRouter.post("/logout", async (_req, res) => {
-  res.send(200);
+  res.sendStatus(200);
 });
 
 export default userRouter;
