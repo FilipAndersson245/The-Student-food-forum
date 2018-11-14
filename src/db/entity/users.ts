@@ -21,10 +21,10 @@ export class Users {
   public id!: string;
 
   @Column({ type: "varchar", length: 32, unique: true, primary: true })
-  public Nickname!: string;
+  public nickname!: string;
 
   @Column({ type: "varchar", length: 255, unique: true })
-  public Email!: string;
+  public email!: string;
 
   @Column({ type: "char", length: 32 })
   public hash!: string;
