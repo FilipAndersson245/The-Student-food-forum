@@ -5,7 +5,11 @@ import { getRepository } from "typeorm";
 const userRouter = express.Router();
 
 userRouter.get("/", async (_req, res) => {
+  const foo = await getRepository(Users)
+    .createQueryBuilder("user")
+    .getMany();
   res.sendStatus(200);
+  res.json(foo);
 });
 
 userRouter.post("/", async (_req, res) => {
