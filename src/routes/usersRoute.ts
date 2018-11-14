@@ -7,8 +7,12 @@ const userRouter = express.Router();
 userRouter.get("/", async (_req, res) => {
   const foo = await getRepository(Users)
     .createQueryBuilder("user")
+    .select("user.nickname")
+    .addSelect("user.image")
+    .addSelect("user.id")
     .getMany();
-  res.sendStatus(200);
+  console.table(foo);
+  res.status(200);
   res.json(foo);
 });
 
