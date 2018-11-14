@@ -5,7 +5,8 @@ import {
   PrimaryColumn,
   OneToMany,
   ManyToOne,
-  ManyToMany
+  ManyToMany,
+  JoinTable
 } from "typeorm";
 import { Comments } from "./comments";
 import { Users } from "./users";
@@ -39,6 +40,7 @@ export class Recipes {
   @OneToMany((_type) => Votes, (votes) => votes.recieptId)
   public votes!: Array<Votes>;
 
-  @ManyToMany((_type) => Tags, (tags) => tags.recipes)
+  @ManyToMany((_type) => Tags)
+  @JoinTable()
   public tags!: Array<Tags>;
 }
