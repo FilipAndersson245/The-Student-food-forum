@@ -7,22 +7,25 @@ import tagsRouter from "./routes/tagsRouter";
 import recipesRouter from "./routes/recipesRouter";
 import bodyparser from "body-parser";
 import morgan from "morgan";
+import { GetConnection } from "./db/getConnection";
 
-const app = express();
-const port = process.env.PORT || 3000;
+GetConnection().then((_connection) => {
+  const app = express();
+  const port = process.env.PORT || 3000;
 
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-  import("errorhandler").then((errorHandler) =>
-    app.use(errorHandler.default())
-  );
-}
+  if (process.env.NODE_ENV === "development") {
+    app.use(morgan("dev"));
+    import("errorhandler").then((errorHandler) =>
+      app.use(errorHandler.default())
+    );
+  }
 
-app.use(bodyparser.json());
-app.use("/users", userRouter);
-app.use("/votes", votesRouter);
-app.use("/comments", votesRouter);
-app.use("/tags", tagsRouter);
-app.use("/recipes", recipesRouter);
+  app.use(bodyparser.json());
+  app.use("/users", userRouter);
+  app.use("/votes", votesRouter);
+  app.use("/comments", votesRouter);
+  app.use("/tags", tagsRouter);
+  app.use("/recipes", recipesRouter);
 
-app.listen(port, () => console.log(`started webserver on:${port}`));
+  app.listen(port, () => console.log(`started webserver on:${port}`));
+});

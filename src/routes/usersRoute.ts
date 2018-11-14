@@ -1,4 +1,6 @@
 import express = require("express");
+import { Users } from "../db/entity/users";
+import { getRepository } from "typeorm";
 
 const userRouter = express.Router();
 
@@ -7,6 +9,14 @@ userRouter.get("/", async (_req, res) => {
 });
 
 userRouter.post("/", async (_req, res) => {
+  // EXAMPLE
+  const repo = getRepository(Users);
+  const user = new Users();
+  user.email = "abc12345@gmail.com";
+  user.hash = "abcdef";
+  user.nickname = "bob12345";
+
+  await repo.insert(user).then(console.error);
   res.send(200);
 });
 
