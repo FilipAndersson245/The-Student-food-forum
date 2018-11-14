@@ -1,133 +1,131 @@
-swagger: '2.0'
+swagger: "2.0"
 
 info:
   version: 1.0.0
-  title: 'The Student Food forum'
-  description: 'A forum API where users can post recipts about food and comment to them.'
+  title: "The Student Food forum"
+  description: "A forum API where users can post recipts about food and comment to them."
   contact:
-    name: 'Filip Andersson'
+    name: "Filip Andersson"
   license:
-    name: 'MIT'
-    url: 'http://opensource.org/licenses/MIT'
-host: 'localhost'
-basePath: '/v1'
+    name: "MIT"
+    url: "http://opensource.org/licenses/MIT"
+host: "localhost"
+basePath: "/v1"
 tags:
-  - name: 'users'
-  - name: 'votes'
-  - name: 'comments'
-  - name: 'tags'
-  - name: 'recipes'
+  - name: "users"
+  - name: "votes"
+  - name: "comments"
+  - name: "tags"
+  - name: "recipes"
 schemes:
-  - 'http'
-  - 'https'
+  - "http"
+  - "https"
+
+securityDefinitions:
+  OAuth2:
+    type: oauth2
+    flow: accessCode
+    authorizationUrl: "https://localhost:3000/authorize"
+    tokenUrl: "https://exemple.com/oauth/token"
+    scopes:
+      user: Grand access to all content and possibility to edit own content.
+      admin: All access of user and the power to change others posts
+security:
+  - ApiKeyAuth: []
+  - OAuth2: [user, admin]
+
 paths:
+  ################################################################
+  #                          User                                #
+  ################################################################
   /users:
+    get:
+      tags:
+        - "users"
+      summary: "Get users."
+      description: ""
+      parameters:
+        - in: query
+          name: search
+          type: string
+          description: "Query string that will filter search result on users nickname."
+        - in: query
+          name: order
+          type: string
+          enum: [alphabetical, rating]
+          description: "How users are returned users are sorted."
+          default: rating
+        - in: query
+          name: limit
+          type: integer
+          description: "How many users will be returned."
+          default: 25
+        - in: query
+          name: offset
+          type: integer
+          description: "How many users that will be skipped."
+          default: 0
+
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/users"
+        # 404:
+        #   description: "Resource not found."
+        500:
+          description: "Internal server error."
+
     post:
       tags:
-        - 'users'
-      summary: 'Create a new user.'
+        - "users"
+      summary: "Create a new user."
       parameters:
-        - in: 'body'
-          name: 'user'
+        - in: "body"
+          name: "user"
           schema:
             type: object
             allOf:
-              - $ref: '#/definitions/userCredentials'
+              - $ref: "#/definitions/userCredentials"
             properties:
               nickname:
                 type: string
 
       consumes:
-        - 'application/json'
+        - "application/json"
       responses:
         201:
-          description: 'User created'
+          description: "User created."
           headers:
             Location:
-              type: 'string'
+              type: "string"
+        400:
+          description: "Incorrect requirements or missing Values."
         409:
-          description: 'User already exists'
-        400:
-          description: 'Bad request'
+          description: "User already exists on the server."
         500:
-          description: 'Server error'
-    get:
-      tags:
-        - 'users'
-      summary: 'Get users.'
-      description: ''
-      parameters:
-        - in: query
-          name: filter
-          type: string
-          description: 'Query string that will filter search result on users nickname'
-        - in: query
-          name: order
-          type: string
-          enum: [alphabetical, rating]
-          description: 'How users are returned users are sorted.'
-          default: rating
-        - in: query
-          name: limit
-          type: integer
-          description: 'How many users will be returned.'
-          default: 25
-        - in: query
-          name: offset
-          type: integer
-          description: 'How many users that will be skipped.'
-          default: 0
-
-      responses:
-        200:
-          description: 'OK'
-          schema:
-            type: 'array'
-            items:
-              $ref: '#/definitions/users'
-            
-        500:
-          description: 'Internal server error'
-
-        404:
-          description: 'No users found'
+          description: "Server error."
   /users/{userId}:
-    delete:
-      tags:
-        - 'users'
-      summary: 'Delete given user.'
-      description: ''
-      parameters:
-        - name: 'userId'
-          in: 'path'
-          description: 'userId'
-          type: 'string'
-          required: true
-      responses:
-        200:
-          description: 'OK'
-        400:
-          description: 'Bad request'
-        500:
-          description: 'Internal server error'
     put:
       tags:
-        - 'users'
-      summary: 'Edit given user.'
-      description: ''
+        - "users"
+      summary: "Edit given user."
+      description: ""
       parameters:
-        - name: 'userId'
-          in: 'path'
-          description: 'userId'
-          type: 'string'
+        - name: "userId"
+          in: "path"
+          description: "userId"
+          type: "string"
           required: true
         - name: "user"
           in: "body"
-          description: "The update to the user"
+          description: "The update to the user. All fields that are not empty in the body will be updated."
           schema:
             type: object
             properties:
-              password: 
+              password:
                 type: string
               nickname:
                 type: string
@@ -135,138 +133,156 @@ paths:
                 type: string
               image:
                 type: string
-
-            
       responses:
         200:
-          description: 'OK'
+          description: "OK"
         400:
-          description: 'Bad request'
+          description: "Incorrect requirements."
         500:
-          description: 'Internal server error'
+          description: "Internal server error"
+    delete:
+      tags:
+        - "users"
+      summary: "Delete given user."
+      description: ""
+      parameters:
+        - name: "userId"
+          in: "path"
+          description: "userId"
+          type: "string"
+          required: true
+      responses:
+        200:
+          description: "User succsessfully deleted"
+        404:
+          description: "User not found."
+        500:
+          description: "Internal server error"
 
   /users/login:
     post:
       tags:
-        - 'users'
-      summary: 'Logs user into the platform.'
+        - "users"
+      summary: "Logs user into the platform."
       consumes:
-        - 'application/json'
+        - "application/json"
       produces:
-        - 'application/json'
+        - "application/json"
       parameters:
-        - in: 'body'
-          name: 'body'
-          description: 'Login credentials'
+        - in: "body"
+          name: "body"
+          description: "Login credentials"
           required: true
           schema:
-            $ref: '#/definitions/userCredentials'
+            $ref: "#/definitions/userCredentials"
       responses:
         200:
-          description: 'Valid login'
+          description: "Valid login"
         401:
-          description: 'Unauthorized'
+          description: "Unauthorized"
 
   /users/logout:
     post:
       tags:
-        - 'users'
-      summary: 'Logs the user out of the platform.'
+        - "users"
+      summary: "Logs the user out of the platform."
       responses:
         200:
-          description: 'Successfull logout'
+          description: "Successfull logout"
         500:
-          description: 'Internal server error'
-
+          description: "Internal server error"
+  ################################################################
+  #                          Recipes                             #
+  ################################################################
   /recipes:
     get:
       tags:
-        - 'recipes'
-      summary: 'Get all recipes.'
-      description: ''
+        - "recipes"
+      summary: "Get all recipes."
+      description: ""
       parameters:
         - in: query
           name: recipesId
           type: string
-          description: 'Id of the recipes'
+          description: "Id of the recipes"
         - in: query
           name: title
           type: string
-          description: 'Title of the recipes'
+          description: "Title of the recipes"
         - in: query
           name: authorId
           type: string
-          description: 'Id of the author'
+          description: "Id of the author"
         - in: query
           name: tags
           type: array
-          description: 'list of tags to be filterd by'
+          description: "list of tags to be filterd by"
           items:
             type: string
         - in: query
           name: order
           type: string
           enum: [alphabetical, time, rating]
-          description: 'How recipes are sorted.'
+          description: "How recipes are sorted."
           default: rating
         - in: query
           name: limit
           type: integer
-          description: 'How many recipes will be returned.'
+          description: "How many recipes will be returned."
           default: 25
         - in: query
           name: offset
           type: integer
-          description: 'How many recipes that will be skipped.'
+          description: "How many recipes that will be skipped."
           default: 0
       responses:
         200:
-          description: 'OK'
+          description: "OK"
           schema:
             type: array
             items:
-              $ref: '#/definitions/recipes'
+              $ref: "#/definitions/recipes"
 
         404:
-          description: 'No recipes found'
+          description: "No recipes found"
         500:
-          description: 'Internal server error'
+          description: "Internal server error"
     post:
       tags:
-        - 'recipes'
-      summary: 'Create new recipes.'
+        - "recipes"
+      summary: "Create new recipes."
       parameters:
         - in: body
           name: recipe
           schema:
             allOf:
-              - $ref: '#/definitions/recipes'
+              - $ref: "#/definitions/recipes"
             properties:
               tags:
                 type: array
                 items:
                   type: string
-      description: ''
+      description: ""
       responses:
         201:
-          description: 'Recipes created'
+          description: "Recipes created"
           headers:
             Location:
-              type: 'string'
+              type: "string"
         500:
-          description: 'Internal server error'
+          description: "Internal server error"
 
   /recipes/{recipesId}:
     put:
       tags:
-        - 'recipes'
-      summary: 'Edit a given post.'
-      description: ''
+        - "recipes"
+      summary: "Edit a given post."
+      description: ""
       parameters:
-        - name: 'recipesId'
-          in: 'path'
-          description: 'recipesId'
-          type: 'string'
+        - name: "recipesId"
+          in: "path"
+          description: "recipesId"
+          type: "string"
           required: true
         - name: "recipes"
           in: "body"
@@ -280,105 +296,106 @@ paths:
                 format: binary
               tags:
                 type: array
-                items: 
+                items:
                   type: string
       responses:
         200:
-          description: 'Successfully changed'
+          description: "Successfully changed"
         404:
-          description: 'recipes not found'
+          description: "recipes not found"
         400:
-          description: 'Bad request'
+          description: "Bad request"
 
     delete:
       tags:
-        - 'recipes'
-      summary: 'Delete a given recipes.'
-      description: ''
+        - "recipes"
+      summary: "Delete a given recipes."
+      description: ""
       parameters:
-        - name: 'recipesId'
-          in: 'path'
-          description: 'recipesId'
-          type: 'string'
+        - name: "recipesId"
+          in: "path"
+          description: "recipesId"
+          type: "string"
           required: true
       responses:
         200:
-          description: 'Successfully deleted recipes'
+          description: "Successfully deleted recipes"
 
         404:
-          description: 'Post not found'
+          description: "Post not found"
         400:
-          description: 'Bad request'
-
+          description: "Bad request"
+  ################################################################
+  #                          Comments                            #
+  ################################################################
   /comments:
     get:
       tags:
-        - 'comments'
-      summary: 'Get all comments.'
-      description: ''
+        - "comments"
+      summary: "Get all comments."
+      description: ""
       parameters:
-        - in: 'query'
-          name: 'recipesId'
-          type: 'string'
+        - in: "query"
+          name: "recipesId"
+          type: "string"
           required: false
-          description: 'Get all comments for a specific recipesId'
+          description: "Get all comments for a specific recipesId"
 
         - in: query
           name: order
           type: string
           enum: [alphabetical, time]
-          description: 'How users are returned users are sorted.'
+          description: "How users are returned users are sorted."
           default: time
         - in: query
           name: limit
           type: integer
-          description: 'How many comments will be returned.'
+          description: "How many comments will be returned."
           default: 25
         - in: query
           name: offset
           type: integer
-          description: 'How many comments that will be skipped.'
+          description: "How many comments that will be skipped."
           default: 0
       responses:
         200:
-          description: 'OK'
+          description: "OK"
           schema:
             type: array
             items:
-              $ref: '#/definitions/getComments'
+              $ref: "#/definitions/getComments"
         404:
-          description: 'No comments found'
+          description: "No comments found"
     post:
       tags:
-        - 'comments'
-      summary: 'Create new comment.'
-      description: ''
+        - "comments"
+      summary: "Create new comment."
+      description: ""
       parameters:
         - in: "body"
           name: "comment"
           schema:
-            $ref: '#/definitions/postComments'
-            
-            
+            $ref: "#/definitions/postComments"
+
       responses:
         201:
-          description: 'Comment successfully created'
+          description: "Comment successfully created"
         400:
-          description: 'Bad request'
+          description: "Bad request"
         500:
-          description: 'Internal server error'
+          description: "Internal server error"
 
   /comments/{commentId}:
     put:
       tags:
-        - 'comments'
-      summary: 'Edit a given user.'
-      description: ''
+        - "comments"
+      summary: "Edit a given user."
+      description: ""
       parameters:
-        - name: 'commentId'
-          in: 'path'
-          description: 'comment Id'
-          type: 'string'
+        - name: "commentId"
+          in: "path"
+          description: "comment Id"
+          type: "string"
           required: true
         - name: "comment"
           in: body
@@ -390,123 +407,125 @@ paths:
                 type: string
       responses:
         200:
-          description: 'Successfully changed'
+          description: "Successfully changed"
         404:
-          description: 'Comment not found'
+          description: "Comment not found"
         500:
-          description: 'Internal server error'
+          description: "Internal server error"
 
     delete:
       tags:
-        - 'comments'
-      summary: 'Delete a given user.'
-      description: ''
+        - "comments"
+      summary: "Delete a given user."
+      description: ""
       parameters:
-        - name: 'commentId'
-          in: 'path'
-          description: 'comment id'
-          type: 'string'
+        - name: "commentId"
+          in: "path"
+          description: "comment id"
+          type: "string"
           required: true
       responses:
         200:
-          description: 'Successfully deleted'
+          description: "Successfully deleted"
         404:
-          description: 'Comment not found'
+          description: "Comment not found"
         500:
-          description: 'Internal server error'
-
+          description: "Internal server error"
+  ################################################################
+  #                          Tags                                #
+  ################################################################
   /tags:
     get:
       tags:
-        - 'tags'
-      summary: 'Get all tags.'
-      description: ''
+        - "tags"
+      summary: "Get all tags."
+      description: ""
       parameters:
         - in: query
           name: filter
           type: string
-          description: 'Filter tags based on a query'
+          description: "Filter tags based on a query"
         - in: query
           name: recipesId
           type: string
-          description: 'get all tags for a specific recipe'
+          description: "get all tags for a specific recipe"
       responses:
         200:
-          description: 'OK'
+          description: "OK"
           schema:
             type: array
             items:
-              $ref: '#/definitions/tags'
+              $ref: "#/definitions/tags"
         404:
-          description: 'Not tags found'
+          description: "Not tags found"
         500:
-          description: 'Internal server error'
+          description: "Internal server error"
 
   /votes:
     get:
       tags:
-        - 'votes'
-      summary: 'Get votes from one user.'
-      description: 'Gets all the users own votes'
+        - "votes"
+      summary: "Get votes from one user."
+      description: "Gets all the users own votes"
       parameters:
         - in: query
-          name: 'userId'          
+          name: "userId"
           type: string
           required: true
         - in: query
           name: order
           type: string
           enum: [alphabetical, time, rating]
-          description: 'How votes are sorted.'
+          description: "How votes are sorted."
           default: rating
         - in: query
           name: limit
           type: integer
-          description: 'How many votes will be returned.'
+          description: "How many votes will be returned."
           default: 25
         - in: query
           name: offset
           type: integer
-          description: 'How many votes that will be skipped.'
+          description: "How many votes that will be skipped."
           default: 0
       responses:
         200:
-          description: ''
+          description: ""
           schema:
             type: array
             items:
-              $ref: '#/definitions/getVotes'
+              $ref: "#/definitions/getVotes"
         404:
-          description: 'Not tags found'
+          description: "Not tags found"
     post:
       tags:
-        - 'votes'
-      summary: 'Create a vote from a user'
-      description: ''
+        - "votes"
+      summary: "Create a vote from a user"
+      description: ""
       parameters:
         - in: body
-          name: 'vote'
+          name: "vote"
           schema:
             $ref: "#/definitions/postVotes"
       responses:
         201:
-          description: 'Vote created'
+          description: "Vote created"
         404:
-          description: 'user or recipe dosnt exist'
-    
-
-
+          description: "user or recipe dosnt exist"
+################################################################
+#                          Models                             #
+################################################################
 definitions:
   userCredentials:
     type: object
     properties:
       email:
-        type: 'string'
-        format: 'email'
-        example: 'bob@gmail.com'
+        type: "string"
+        format: "email"
+        example: "bob@gmail.com"
       password:
         type: string
-        format: 'password'
+        format: "password"
     required:
       - password
       - email
