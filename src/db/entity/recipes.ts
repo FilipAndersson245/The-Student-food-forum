@@ -40,7 +40,7 @@ export class Recipes {
   @OneToMany((_type) => Votes, (votes) => votes.recieptId)
   public votes!: Array<Votes>;
 
-  @ManyToMany((_type) => Tags)
+  @ManyToMany((_type) => Tags, (tags) => tags.recipes)
   @JoinTable()
   public tags!: Array<Tags>;
 }

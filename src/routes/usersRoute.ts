@@ -5,7 +5,15 @@ import { getRepository } from "typeorm";
 const userRouter = express.Router();
 
 userRouter.get("/", async (_req, res) => {
-  res.sendStatus(200);
+  const foo = await getRepository(Users)
+    .createQueryBuilder("user")
+    .select("user.nickname")
+    .addSelect("user.image")
+    .addSelect("user.id")
+    .getMany();
+  console.table(foo);
+  res.status(200);
+  res.json(foo);
 });
 
 userRouter.post("/", async (_req, res) => {
