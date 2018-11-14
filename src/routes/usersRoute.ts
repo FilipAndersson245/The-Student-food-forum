@@ -16,7 +16,7 @@ userRouter.post("/", async (_req, res) => {
   user.hash = "abcdef";
   user.nickname = "bob12345";
 
-  await repo.insert(user).then(console.error);
+  await repo.insert(user).catch(console.error);
   res.sendStatus(200);
 });
 
