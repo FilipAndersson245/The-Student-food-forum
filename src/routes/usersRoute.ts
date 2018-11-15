@@ -1,19 +1,31 @@
 import express = require("express");
 import { Users } from "../db/entity/users";
 import { getRepository } from "typeorm";
+import { sqlpromiseHandler } from "../db/dbHelpers";
 
 const userRouter = express.Router();
 
-userRouter.get("/", async (_req, res) => {
-  const foo = await getRepository(Users)
+userRouter.get("/", async (req, res) => {
+  const query = getRepository(Users)
     .createQueryBuilder("user")
-    .select("user.nickname")
-    .addSelect("user.image")
-    .addSelect("user.id")
+    .select(["user.nickname", "user.image", "user.id"])
+    .where((qp) => {
+      !!req.query.search &&
+        qp.andWhere("user.nickname like :nickname", {
+          nickname: `%${req.query.search}%`
+        });
+    })
+    .offset(parseInt(req.query.offset, 10) || 0)
+    .take(parseInt(req.query.limit, 10) || 25)
     .getMany();
-  console.table(foo);
-  res.status(200);
-  res.json(foo);
+
+  const { data, error } = await sqlpromiseHandler(query);
+  if (error) {
+    console.log(error.errno);
+    res.sendStatus(500);
+  } else {
+    res.json(data);
+  }
 });
 
 userRouter.post("/", async (_req, res) => {
