@@ -40,8 +40,22 @@ userRouter.post("/", async (_req, res) => {
   res.sendStatus(200);
 });
 
-userRouter.delete("/{userId}", async (_req, res) => {
-  res.sendStatus(200);
+userRouter.delete("/:userId", async (req, res) => {
+  const userId: string = req.params.userId;
+  console.log(userId);
+  const repo = getRepository(Users);
+  const query = repo
+    .createQueryBuilder("user")
+    .delete()
+    .where("id = :id", { id: userId })
+    .execute();
+
+  const result = await sqlpromiseHandler(query);
+  if (result.error) {
+    res.sendStatus(500);
+  } else {
+    res.sendStatus(200);
+  }
 });
 
 userRouter.put("/{userId}", async (_req, res) => {
