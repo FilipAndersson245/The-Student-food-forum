@@ -539,10 +539,6 @@ definitions:
         type: string
       content:
         type: string
-      rating:
-        type: integer
-        format: unsigned32
-        default: 0
       img:
         type: string
         format: path
