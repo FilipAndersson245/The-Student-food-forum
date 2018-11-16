@@ -21,6 +21,7 @@ GetConnection().then((_connection) => {
   }
 
   app.use(bodyparser.json());
+  app.use(bodyparser.urlencoded({ extended: false }));
   app.use("/users", userRouter);
   app.use("/votes", votesRouter);
   app.use("/comments", votesRouter);
