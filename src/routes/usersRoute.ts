@@ -1,35 +1,73 @@
 import express = require("express");
 import { Users } from "../db/entity/users";
 import { getRepository } from "typeorm";
+import { sqlpromiseHandler } from "../db/dbHelpers";
 
 const userRouter = express.Router();
 
-userRouter.get("/", async (_req, res) => {
-  const foo = await getRepository(Users)
+userRouter.get("/", async (req, res) => {
+  const query = getRepository(Users)
     .createQueryBuilder("user")
-    .select("user.nickname")
-    .addSelect("user.image")
-    .addSelect("user.id")
+    .select(["user.nickname", "user.image", "user.id"])
+    .where((qp) => {
+      !!req.query.search &&
+        qp.andWhere("user.nickname like :nickname", {
+          nickname: `%${req.query.search}%`
+        });
+    })
+    .offset(parseInt(req.query.offset, 10) || 0)
+    .take(parseInt(req.query.limit, 10) || 25)
     .getMany();
-  console.table(foo);
-  res.status(200);
-  res.json(foo);
+
+  const { data, error } = await sqlpromiseHandler(query);
+  if (error) {
+    console.log(error.errno);
+    res.sendStatus(500);
+  } else {
+    res.json(data);
+  }
 });
 
-userRouter.post("/", async (_req, res) => {
+userRouter.post("/", async (req, res) => {
   // EXAMPLE
   const repo = getRepository(Users);
   const user = new Users();
-  user.email = "abc12345@gmail.com";
-  user.hash = "abcdef";
-  user.nickname = "bob12345";
 
-  await repo.insert(user).catch(console.error);
-  res.sendStatus(200);
+  if (req.body.email && req.body.nickname && req.body.password) {
+    user.email = req.body.email;
+    user.nickname = req.body.nickname;
+    user.hash = `TEMPHASH_${req.body.password}`;
+
+    console.table(user);
+
+    const { error } = await sqlpromiseHandler(repo.insert(user));
+    if (error) {
+      res.sendStatus(500);
+    } else {
+      res.setHeader("location", 10);
+      res.sendStatus(200);
+    }
+  } else {
+    res.sendStatus(400);
+  }
 });
 
-userRouter.delete("/{userId}", async (_req, res) => {
-  res.sendStatus(200);
+userRouter.delete("/:userId", async (req, res) => {
+  const userId: string = req.params.userId;
+  console.log(userId);
+  const repo = getRepository(Users);
+  const query = repo
+    .createQueryBuilder("user")
+    .delete()
+    .where("id = :id", { id: userId })
+    .execute();
+
+  const result = await sqlpromiseHandler(query);
+  if (result.error) {
+    res.sendStatus(500);
+  } else {
+    res.sendStatus(200);
+  }
 });
 
 userRouter.put("/{userId}", async (_req, res) => {
