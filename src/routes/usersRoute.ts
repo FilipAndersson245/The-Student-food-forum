@@ -28,16 +28,28 @@ userRouter.get("/", async (req, res) => {
   }
 });
 
-userRouter.post("/", async (_req, res) => {
+userRouter.post("/", async (req, res) => {
   // EXAMPLE
   const repo = getRepository(Users);
   const user = new Users();
-  user.email = "abc12345@gmail.com";
-  user.hash = "abcdef";
-  user.nickname = "bob12345";
 
-  await repo.insert(user).catch(console.error);
-  res.sendStatus(200);
+  if (req.body.email && req.body.nickname && req.body.password) {
+    user.email = req.body.email;
+    user.nickname = req.body.nickname;
+    user.hash = `TEMPHASH_${req.body.password}`;
+
+    console.table(user);
+
+    const { error } = await sqlpromiseHandler(repo.insert(user));
+    if (error) {
+      res.sendStatus(500);
+    } else {
+      res.setHeader("location", 10);
+      res.sendStatus(200);
+    }
+  } else {
+    res.sendStatus(400);
+  }
 });
 
 userRouter.delete("/:userId", async (req, res) => {
