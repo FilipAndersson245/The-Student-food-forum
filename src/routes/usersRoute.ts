@@ -70,8 +70,41 @@ userRouter.delete("/:userId", async (req, res) => {
   }
 });
 
-userRouter.put("/{userId}", async (_req, res) => {
-  res.sendStatus(200);
+userRouter.put("/:userId", async (req, res) => {
+  const userId: string | undefined = req.params.userId;
+  console.log(userId);
+  if (!userId) {
+    res.sendStatus(400);
+    return;
+  }
+  const values = {
+    ...(req.body.nickname ? { nickname: req.body.nickname } : null),
+    ...(req.body.email ? { email: req.body.email } : null)
+  };
+
+  if (Object.keys(values).length === 0) {
+    console.table(req.body);
+    console.table(values);
+    res.sendStatus(400);
+    return;
+  }
+
+  const repo = getRepository(Users);
+  const query = repo
+    .createQueryBuilder("user")
+    .update(Users)
+    .where("users.id = :id", { id: userId })
+    .set(values)
+    .execute();
+  const { data, error } = await sqlpromiseHandler(query);
+  if (error) {
+    res.sendStatus(500);
+    return;
+  } else {
+    console.log(data!.generatedMaps);
+    res.sendStatus(200);
+    return;
+  }
 });
 
 userRouter.post("/login", async (_req, res) => {
