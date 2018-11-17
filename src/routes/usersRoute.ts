@@ -2,6 +2,8 @@ import express = require("express");
 import { Users } from "../db/entity/users";
 import { getRepository } from "typeorm";
 import { sqlpromiseHandler } from "../db/dbHelpers";
+import { hash } from "bcrypt";
+const saltRounds = 10;
 
 const userRouter = express.Router();
 
@@ -36,7 +38,7 @@ userRouter.post("/", async (req, res) => {
   if (req.body.email && req.body.nickname && req.body.password) {
     user.email = req.body.email;
     user.nickname = req.body.nickname;
-    user.hash = `TEMPHASH_${req.body.password}`;
+    user.hash = await hash(req.body.password, saltRounds);
 
     console.table(user);
 

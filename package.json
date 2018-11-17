@@ -40,6 +40,8 @@
     "typescript": "^3.1.6"
   },
   "dependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
     "dotenv": "^6.1.0",
     "express": "^4.16.4",
