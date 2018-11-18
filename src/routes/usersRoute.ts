@@ -3,7 +3,7 @@ import { Users } from "../db/entity/users";
 import { getRepository } from "typeorm";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { hash } from "bcrypt";
-const saltRounds = 10;
+const saltRounds = 7;
 
 const userRouter = express.Router();
 

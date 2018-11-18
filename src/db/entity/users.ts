@@ -26,7 +26,7 @@ export class Users {
   @Column({ type: "varchar", length: 255, unique: true })
   public email!: string;
 
-  @Column({ type: "char", length: 32 })
+  @Column({ type: "char", length: 60 })
   public hash!: string;
 
   @Column({ type: "char", length: 32, nullable: true })
