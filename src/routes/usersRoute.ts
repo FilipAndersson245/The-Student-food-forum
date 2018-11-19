@@ -3,6 +3,7 @@ import { Users } from "../db/entity/users";
 import { getRepository } from "typeorm";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { hash } from "bcrypt";
+import { authenticateHeader, verifyIdentity } from "../autentication";
 const saltRounds = 7;
 
 const userRouter = express.Router();
@@ -31,7 +32,6 @@ userRouter.get("/", async (req, res) => {
 });
 
 userRouter.post("/", async (req, res) => {
-  // EXAMPLE
   const repo = getRepository(Users);
   const user = new Users();
 
@@ -55,7 +55,18 @@ userRouter.post("/", async (req, res) => {
 });
 
 userRouter.delete("/:userId", async (req, res) => {
-  const userId: string = req.params.userId;
+  const userId: string | undefined = req.params.userId;
+  if (!userId) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const token = authenticateHeader(req.headers.authorization);
+  if (!verifyIdentity(userId, token)) {
+    res.sendStatus(401);
+    return;
+  }
+
   console.log(userId);
   const repo = getRepository(Users);
   const query = repo
@@ -74,9 +85,14 @@ userRouter.delete("/:userId", async (req, res) => {
 
 userRouter.put("/:userId", async (req, res) => {
   const userId: string | undefined = req.params.userId;
-  console.log(userId);
+
   if (!userId) {
     res.sendStatus(400);
+    return;
+  }
+  const token = authenticateHeader(req.headers.authorization);
+  if (!verifyIdentity(userId, token)) {
+    res.sendStatus(401);
     return;
   }
   const values = {
