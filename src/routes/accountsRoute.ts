@@ -11,11 +11,11 @@ const accountsRouter = express.Router();
 
 accountsRouter.get("/", async (req, res) => {
   const query = getRepository(Accounts)
-    .createQueryBuilder("user")
-    .select(["accounts.nickname", "accounts.image", "accounts.id"])
+    .createQueryBuilder("acount")
+    .select(["account.nickname", "account.image", "account.id"])
     .where((qp) => {
       !!req.query.search &&
-        qp.andWhere("accounts.nickname like :nickname", {
+        qp.andWhere("account.nickname like :nickname", {
           nickname: `%${req.query.search}%`
         });
     })
@@ -85,7 +85,7 @@ accountsRouter.delete("/:accountId", async (req, res) => {
 });
 
 accountsRouter.put("/:accountId", async (req, res) => {
-  const accountId: string | undefined = req.params.userId;
+  const accountId: string | undefined = req.params.accountId;
 
   if (!accountId) {
     res.sendStatus(400);

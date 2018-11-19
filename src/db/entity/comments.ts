@@ -23,6 +23,6 @@ export class Comments {
   @ManyToOne((_type) => Recipes, (recipes) => recipes.comments)
   public recipes!: Recipes;
 
-  @ManyToOne((_type) => Accounts, (users) => users.id)
-  public users!: Accounts;
+  @ManyToOne((_type) => Accounts, (accounts) => accounts.id)
+  public accounts!: Accounts;
 }

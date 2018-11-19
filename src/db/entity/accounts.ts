@@ -35,9 +35,9 @@ export class Accounts {
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
 
-  @OneToMany((_type) => Comments, (comments) => comments.users)
+  @OneToMany((_type) => Comments, (comments) => comments.accounts)
   public comments!: Array<Comments>;
 
-  @OneToMany((_type) => Votes, (votes) => votes.userId)
+  @OneToMany((_type) => Votes, (votes) => votes.accountId)
   public votes!: Array<Comments>;
 }

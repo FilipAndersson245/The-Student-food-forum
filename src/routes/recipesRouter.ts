@@ -10,11 +10,11 @@ recipesRouter.post("/", async (_req, res) => {
   res.sendStatus(200);
 });
 
-recipesRouter.delete("/{userId}", async (_req, res) => {
+recipesRouter.delete("/:accountId", async (_req, res) => {
   res.sendStatus(200);
 });
 
-recipesRouter.put("/{userId}", async (_req, res) => {
+recipesRouter.put("/:accountId", async (_req, res) => {
   res.sendStatus(200);
 });
 
