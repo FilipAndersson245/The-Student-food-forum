@@ -2,6 +2,7 @@ import express = require("express");
 import { authenticateHeader, verifyIdentity } from "../autentication";
 import { getRepository } from "typeorm";
 import { Votes } from "../db/entity/votes";
+import { sqlpromiseHandler } from "../db/dbHelpers";
 
 const votesRouter = express.Router();
 
@@ -17,7 +18,7 @@ votesRouter.get("/", async (req, res) => {
     return;
   }
 
-  getRepository(Votes)
+  const query = getRepository(Votes)
     .createQueryBuilder("votes")
     .select(["votes.recieptId"])
     .where("votes.vote = 1")
@@ -25,7 +26,13 @@ votesRouter.get("/", async (req, res) => {
     .offset(parseInt(req.query.offset, 10) || 0)
     .take(parseInt(req.query.limit, 10) || 25)
     .getMany();
-  res.sendStatus(200);
+
+  const { data, error } = await sqlpromiseHandler(query);
+  if (error) {
+    res.status(500).send();
+    return;
+  }
+  res.status(200).json(data);
 });
 
 votesRouter.post("/", async (_req, res) => {
