@@ -9,7 +9,7 @@ import { Comments } from "./comments";
 import { Votes } from "./votes";
 
 @Entity()
-export class Users {
+export class Accounts {
   @PrimaryGeneratedColumn("uuid")
   @PrimaryColumn({
     type: "char",
@@ -26,7 +26,7 @@ export class Users {
   @Column({ type: "varchar", length: 255, unique: true })
   public email!: string;
 
-  @Column({ type: "char", length: 32 })
+  @Column({ type: "char", length: 60 })
   public passwordHash!: string;
 
   @Column({ type: "char", length: 32, nullable: true })

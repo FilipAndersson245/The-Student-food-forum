@@ -9,7 +9,7 @@ import {
   JoinTable
 } from "typeorm";
 import { Comments } from "./comments";
-import { Users } from "./users";
+import { Accounts } from "./accounts";
 import { Votes } from "./votes";
 import { Tags } from "./tags";
 
@@ -37,8 +37,8 @@ export class Recipes {
   @OneToMany((_type) => Comments, (comments) => comments.recipes)
   public comments!: Array<Comments>;
 
-  @ManyToOne((_type) => Users, (users) => users.id)
-  public users!: Users;
+  @ManyToOne((_type) => Accounts, (users) => users.id)
+  public users!: Accounts;
 
   @OneToMany((_type) => Votes, (votes) => votes.recieptId)
   public votes!: Array<Votes>;

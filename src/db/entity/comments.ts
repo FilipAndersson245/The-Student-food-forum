@@ -6,7 +6,7 @@ import {
   ManyToOne
 } from "typeorm";
 import { Recipes } from "./recipes";
-import { Users } from "./users";
+import { Accounts } from "./accounts";
 
 @Entity()
 export class Comments {
@@ -23,6 +23,6 @@ export class Comments {
   @ManyToOne((_type) => Recipes, (recipes) => recipes.comments)
   public recipes!: Recipes;
 
-  @ManyToOne((_type) => Users, (users) => users.id)
-  public users!: Users;
+  @ManyToOne((_type) => Accounts, (users) => users.id)
+  public users!: Accounts;
 }

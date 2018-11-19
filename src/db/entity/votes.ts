@@ -1,6 +1,6 @@
 import { Entity, ManyToOne, Column } from "typeorm";
 import { Recipes } from "./recipes";
-import { Users } from "./users";
+import { Accounts } from "./accounts";
 
 @Entity()
 export class Votes {
@@ -10,6 +10,6 @@ export class Votes {
   @ManyToOne((_type) => Recipes, (recipes) => recipes.id, { primary: true })
   public recieptId!: string;
 
-  @ManyToOne((_type) => Users, (users) => users.id, { primary: true })
+  @ManyToOne((_type) => Accounts, (users) => users.id, { primary: true })
   public userId!: string;
 }

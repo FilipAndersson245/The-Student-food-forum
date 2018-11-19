@@ -3,7 +3,7 @@ swagger: "2.0"
 info:
   version: 1.0.0
   title: "The Student Food forum"
-  description: "A forum API where users can post recipts about food and comment to them."
+  description: "A forum API where accounts can post recipts about food and comment to them."
   contact:
     name: "Filip Andersson"
   license:
@@ -12,7 +12,7 @@ info:
 host: "localhost"
 basePath: "/v1"
 tags:
-  - name: "users"
+  - name: "accounts"
   - name: "votes"
   - name: "comments"
   - name: "tags"
@@ -28,42 +28,42 @@ securityDefinitions:
     authorizationUrl: "https://localhost:3000/authorize"
     tokenUrl: "https://exemple.com/oauth/token"
     scopes:
-      user: Grand access to all content and possibility to edit own content.
-      admin: All access of user and the power to change others posts
+      account: Grand access to all content and possibility to edit own content.
+      admin: All access of account and the power to change others posts
 security:
   - ApiKeyAuth: []
-  - OAuth2: [user, admin]
+  - OAuth2: [account, admin]
 
 paths:
   ################################################################
-  #                          User                                #
+  #                          Account                                #
   ################################################################
-  /users:
+  /accounts:
     get:
       tags:
-        - "users"
-      summary: "Get users."
+        - "accounts"
+      summary: "Get accounts."
       description: ""
       parameters:
         - in: query
           name: search
           type: string
-          description: "Query string that will filter search result on users nickname."
+          description: "Query string that will filter search result on accounts nickname."
         - in: query
           name: order
           type: string
           enum: [alphabetical, rating]
-          description: "How users are returned users are sorted."
+          description: "How accounts are returned accounts are sorted."
           default: rating
         - in: query
           name: limit
           type: integer
-          description: "How many users will be returned."
+          description: "How many accounts will be returned."
           default: 25
         - in: query
           name: offset
           type: integer
-          description: "How many users that will be skipped."
+          description: "How many accounts that will be skipped."
           default: 0
 
       responses:
@@ -72,7 +72,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/users"
+              $ref: "#/definitions/accounts"
         # 404:
         #   description: "Resource not found."
         500:
@@ -80,11 +80,11 @@ paths:
 
     post:
       tags:
-        - "users"
-      summary: "Create a new user."
+        - "accounts"
+      summary: "Create a new account."
       parameters:
         - in: "body"
-          name: "user"
+          name: "account"
           schema:
             type: object
             allOf:
@@ -97,21 +97,21 @@ paths:
         - "application/json"
       responses:
         201:
-          description: "User created."
+          description: "Account created."
           headers:
             Location:
               type: "string"
         400:
           description: "Incorrect requirements or missing Values."
         409:
-          description: "User already exists on the server."
+          description: "Account already exists on the server."
         500:
           description: "Server error."
-  /users/{userId}:
+  /accounts/{userId}:
     put:
       tags:
-        - "users"
-      summary: "Edit given user."
+        - "accounts"
+      summary: "Edit given account."
       description: ""
       parameters:
         - name: "userId"
@@ -119,9 +119,9 @@ paths:
           description: "userId"
           type: "string"
           required: true
-        - name: "user"
+        - name: "account"
           in: "body"
-          description: "The update to the user. All fields that are not empty in the body will be updated."
+          description: "The update to the account. All fields that are not empty in the body will be updated."
           schema:
             type: object
             properties:
@@ -142,8 +142,8 @@ paths:
           description: "Internal server error"
     delete:
       tags:
-        - "users"
-      summary: "Delete given user."
+        - "accounts"
+      summary: "Delete given account."
       description: ""
       parameters:
         - name: "userId"
@@ -153,17 +153,17 @@ paths:
           required: true
       responses:
         200:
-          description: "User succsessfully deleted"
+          description: "Account succsessfully deleted"
         404:
-          description: "User not found."
+          description: "Account not found."
         500:
           description: "Internal server error"
 
-  # /users/login:
+  # /accounts/login:
   #   post:
   #     tags:
-  #       - "users"
-  #     summary: "Logs user into the platform."
+  #       - "accounts"
+  #     summary: "Logs account into the platform."
   #     consumes:
   #       - "application/json"
   #     produces:
@@ -181,11 +181,11 @@ paths:
   #       401:
   #         description: "Unauthorized"
 
-  # /users/logout:
+  # /accounts/logout:
   #   post:
   #     tags:
-  #       - "users"
-  #     summary: "Logs the user out of the platform."
+  #       - "accounts"
+  #     summary: "Logs the account out of the platform."
   #     responses:
   #       200:
   #         description: "Successfull logout"
@@ -345,7 +345,7 @@ paths:
           name: order
           type: string
           enum: [alphabetical, time]
-          description: "How users are returned users are sorted."
+          description: "How accounts are returned accounts are sorted."
           default: time
         - in: query
           name: limit
@@ -389,7 +389,7 @@ paths:
     put:
       tags:
         - "comments"
-      summary: "Edit a given user."
+      summary: "Edit a given account."
       description: ""
       parameters:
         - name: "commentId"
@@ -416,7 +416,7 @@ paths:
     delete:
       tags:
         - "comments"
-      summary: "Delete a given user."
+      summary: "Delete a given account."
       description: ""
       parameters:
         - name: "commentId"
@@ -465,8 +465,8 @@ paths:
     get:
       tags:
         - "votes"
-      summary: "Get votes from one user."
-      description: "Gets all the users own votes"
+      summary: "Get votes from one account."
+      description: "Gets all the accounts own votes"
       parameters:
         - in: query
           name: "userId"
@@ -500,7 +500,7 @@ paths:
     post:
       tags:
         - "votes"
-      summary: "Create a vote from a user"
+      summary: "Create a vote from a account"
       description: ""
       parameters:
         - in: body
@@ -511,7 +511,7 @@ paths:
         201:
           description: "Vote created"
         404:
-          description: "user or recipe dosnt exist"
+          description: "account or recipe dosnt exist"
 ################################################################
 #                          Models                             #
 ################################################################
@@ -573,7 +573,7 @@ definitions:
         format: nameOfTag
     required:
       - id
-  users:
+  accounts:
     type: object
     properties:
       nickname:
