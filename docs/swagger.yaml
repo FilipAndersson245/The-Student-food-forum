@@ -159,38 +159,38 @@ paths:
         500:
           description: "Internal server error"
 
-  /users/login:
-    post:
-      tags:
-        - "users"
-      summary: "Logs user into the platform."
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Login credentials"
-          required: true
-          schema:
-            $ref: "#/definitions/userCredentials"
-      responses:
-        200:
-          description: "Valid login"
-        401:
-          description: "Unauthorized"
+  # /users/login:
+  #   post:
+  #     tags:
+  #       - "users"
+  #     summary: "Logs user into the platform."
+  #     consumes:
+  #       - "application/json"
+  #     produces:
+  #       - "application/json"
+  #     parameters:
+  #       - in: "body"
+  #         name: "body"
+  #         description: "Login credentials"
+  #         required: true
+  #         schema:
+  #           $ref: "#/definitions/userCredentials"
+  #     responses:
+  #       200:
+  #         description: "Valid login"
+  #       401:
+  #         description: "Unauthorized"
 
-  /users/logout:
-    post:
-      tags:
-        - "users"
-      summary: "Logs the user out of the platform."
-      responses:
-        200:
-          description: "Successfull logout"
-        500:
-          description: "Internal server error"
+  # /users/logout:
+  #   post:
+  #     tags:
+  #       - "users"
+  #     summary: "Logs the user out of the platform."
+  #     responses:
+  #       200:
+  #         description: "Successfull logout"
+  #       500:
+  #         description: "Internal server error"
   ################################################################
   #                          Recipes                             #
   ################################################################
@@ -542,9 +542,6 @@ definitions:
       img:
         type: string
         format: path
-      recepieId:
-        type: string
-        format: uuid
     required:
       - userId
   getComments:
