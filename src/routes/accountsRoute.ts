@@ -39,7 +39,7 @@ accountsRouter.post("/", async (req, res) => {
   if (req.body.email && req.body.nickname && req.body.password) {
     account.email = req.body.email;
     account.nickname = req.body.nickname;
-    account.hash = await hash(req.body.password, saltRounds);
+    account.passwordHash = await hash(req.body.password, saltRounds);
 
     console.table(account);
 
@@ -71,9 +71,9 @@ accountsRouter.delete("/:accountId", async (req, res) => {
   console.log(accountId);
   const repo = getRepository(Accounts);
   const query = repo
-    .createQueryBuilder("user")
+    .createQueryBuilder("account")
     .delete()
-    .where("id = :id", { id: accountId })
+    .where("account.id = :id", { id: accountId })
     .execute();
 
   const result = await sqlpromiseHandler(query);

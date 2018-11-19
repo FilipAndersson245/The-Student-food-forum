@@ -27,7 +27,7 @@ export class Accounts {
   public email!: string;
 
   @Column({ type: "char", length: 60 })
-  public hash!: string;
+  public passwordHash!: string;
 
   @Column({ type: "char", length: 32, nullable: true })
   public image!: string;

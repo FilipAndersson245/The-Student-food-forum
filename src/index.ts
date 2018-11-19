@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 dotenv.config(); // Load .env to process.env object
-import userRouter from "./routes/accountsRoute";
+import accountsRouter from "./routes/accountsRoute";
 import votesRouter from "./routes/votesRouter";
 import tagsRouter from "./routes/tagsRouter";
 import recipesRouter from "./routes/recipesRouter";
@@ -23,7 +23,7 @@ GetConnection().then((_connection) => {
 
   app.use(bodyparser.json());
   app.use(bodyparser.urlencoded({ extended: false }));
-  app.use("/accounts", userRouter);
+  app.use("/accounts", accountsRouter);
   app.use("/votes", votesRouter);
   app.use("/comments", votesRouter);
   app.use("/tags", tagsRouter);

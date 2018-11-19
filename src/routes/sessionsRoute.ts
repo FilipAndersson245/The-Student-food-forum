@@ -30,7 +30,7 @@ sessionRouter.post("/", async (req, res) => {
     res.sendStatus(500);
     return;
   }
-  if (await compare(password, data!.hash)) {
+  if (await compare(password, data!.passwordHash)) {
     const token = sign(
       { sub: data!.id, name: data!.nickname },
       process.env.TOKEN_SECRET!,
