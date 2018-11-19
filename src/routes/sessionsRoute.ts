@@ -1,6 +1,6 @@
 import express = require("express");
 import { getRepository } from "typeorm";
-import { Users } from "../db/entity/users";
+import { Accounts } from "../db/entity/accounts";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { compare } from "bcrypt";
 import { sign } from "jsonwebtoken";
@@ -19,10 +19,10 @@ sessionRouter.post("/", async (req, res) => {
   if (grantType !== "password") {
     res.sendStatus(400).json({ message: "grand_type not supported" });
   }
-  const query = getRepository(Users)
-    .createQueryBuilder("user")
+  const query = getRepository(Accounts)
+    .createQueryBuilder("account")
     .select()
-    .where("user.nickname = :username", { username })
+    .where("account.nickname = :username", { username })
     .getOne();
 
   const { data, error } = await sqlpromiseHandler(query);

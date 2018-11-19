@@ -9,7 +9,7 @@ import { Comments } from "./comments";
 import { Votes } from "./votes";
 
 @Entity()
-export class Users {
+export class Accounts {
   @PrimaryGeneratedColumn("uuid")
   @PrimaryColumn({
     type: "char",

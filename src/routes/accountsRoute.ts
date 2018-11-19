@@ -1,20 +1,21 @@
 import express = require("express");
-import { Users } from "../db/entity/users";
+import { Accounts } from "../db/entity/accounts";
 import { getRepository } from "typeorm";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { hash } from "bcrypt";
 import { authenticateHeader, verifyIdentity } from "../autentication";
+
 const saltRounds = 7;
 
-const userRouter = express.Router();
+const accountsRouter = express.Router();
 
-userRouter.get("/", async (req, res) => {
-  const query = getRepository(Users)
+accountsRouter.get("/", async (req, res) => {
+  const query = getRepository(Accounts)
     .createQueryBuilder("user")
-    .select(["user.nickname", "user.image", "user.id"])
+    .select(["accounts.nickname", "accounts.image", "accounts.id"])
     .where((qp) => {
       !!req.query.search &&
-        qp.andWhere("user.nickname like :nickname", {
+        qp.andWhere("accounts.nickname like :nickname", {
           nickname: `%${req.query.search}%`
         });
     })
@@ -31,18 +32,18 @@ userRouter.get("/", async (req, res) => {
   }
 });
 
-userRouter.post("/", async (req, res) => {
-  const repo = getRepository(Users);
-  const user = new Users();
+accountsRouter.post("/", async (req, res) => {
+  const repo = getRepository(Accounts);
+  const account = new Accounts();
 
   if (req.body.email && req.body.nickname && req.body.password) {
-    user.email = req.body.email;
-    user.nickname = req.body.nickname;
-    user.hash = await hash(req.body.password, saltRounds);
+    account.email = req.body.email;
+    account.nickname = req.body.nickname;
+    account.hash = await hash(req.body.password, saltRounds);
 
-    console.table(user);
+    console.table(account);
 
-    const { error } = await sqlpromiseHandler(repo.insert(user));
+    const { error } = await sqlpromiseHandler(repo.insert(account));
     if (error) {
       res.sendStatus(500);
     } else {
@@ -54,25 +55,25 @@ userRouter.post("/", async (req, res) => {
   }
 });
 
-userRouter.delete("/:userId", async (req, res) => {
-  const userId: string | undefined = req.params.userId;
-  if (!userId) {
+accountsRouter.delete("/:accountId", async (req, res) => {
+  const accountId: string | undefined = req.params.accountId;
+  if (!accountId) {
     res.sendStatus(400);
     return;
   }
 
   const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(userId, token)) {
+  if (!verifyIdentity(accountId, token)) {
     res.sendStatus(401);
     return;
   }
 
-  console.log(userId);
-  const repo = getRepository(Users);
+  console.log(accountId);
+  const repo = getRepository(Accounts);
   const query = repo
     .createQueryBuilder("user")
     .delete()
-    .where("id = :id", { id: userId })
+    .where("id = :id", { id: accountId })
     .execute();
 
   const result = await sqlpromiseHandler(query);
@@ -83,15 +84,15 @@ userRouter.delete("/:userId", async (req, res) => {
   }
 });
 
-userRouter.put("/:userId", async (req, res) => {
-  const userId: string | undefined = req.params.userId;
+accountsRouter.put("/:accountId", async (req, res) => {
+  const accountId: string | undefined = req.params.userId;
 
-  if (!userId) {
+  if (!accountId) {
     res.sendStatus(400);
     return;
   }
   const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(userId, token)) {
+  if (!verifyIdentity(accountId, token)) {
     res.sendStatus(401);
     return;
   }
@@ -107,11 +108,11 @@ userRouter.put("/:userId", async (req, res) => {
     return;
   }
 
-  const repo = getRepository(Users);
+  const repo = getRepository(Accounts);
   const query = repo
-    .createQueryBuilder("user")
-    .update(Users)
-    .where("users.id = :id", { id: userId })
+    .createQueryBuilder("account")
+    .update(Accounts)
+    .where("account.id = :id", { id: accountId })
     .set(values)
     .execute();
   const { data, error } = await sqlpromiseHandler(query);
@@ -125,12 +126,12 @@ userRouter.put("/:userId", async (req, res) => {
   }
 });
 
-userRouter.post("/login", async (_req, res) => {
+accountsRouter.post("/login", async (_req, res) => {
   res.sendStatus(200);
 });
 
-userRouter.post("/logout", async (_req, res) => {
+accountsRouter.post("/logout", async (_req, res) => {
   res.sendStatus(200);
 });
 
-export default userRouter;
+export default accountsRouter;
