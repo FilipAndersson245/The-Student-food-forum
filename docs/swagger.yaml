@@ -53,7 +53,7 @@ paths:
           name: order
           type: string
           enum: [alphabetical, rating]
-          description: "How accounts are returned accounts are sorted."
+          description: "How accounts that are returned are sorted."
           default: rating
         - in: query
           name: limit

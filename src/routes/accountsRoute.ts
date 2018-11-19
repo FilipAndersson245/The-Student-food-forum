@@ -11,7 +11,7 @@ const accountsRouter = express.Router();
 
 accountsRouter.get("/", async (req, res) => {
   const query = getRepository(Accounts)
-    .createQueryBuilder("user")
+    .createQueryBuilder("accounts")
     .select(["accounts.nickname", "accounts.image", "accounts.id"])
     .where((qp) => {
       !!req.query.search &&
@@ -47,7 +47,7 @@ accountsRouter.post("/", async (req, res) => {
     if (error) {
       res.sendStatus(500);
     } else {
-      res.setHeader("location", 10);
+      res.setHeader("location", 10); // <---- Not right, change later.
       res.sendStatus(200);
     }
   } else {
@@ -69,6 +69,7 @@ accountsRouter.delete("/:accountId", async (req, res) => {
   }
 
   console.log(accountId);
+
   const repo = getRepository(Accounts);
   const query = repo
     .createQueryBuilder("account")
@@ -86,7 +87,6 @@ accountsRouter.delete("/:accountId", async (req, res) => {
 
 accountsRouter.put("/:accountId", async (req, res) => {
   const accountId: string | undefined = req.params.userId;
-
   if (!accountId) {
     res.sendStatus(400);
     return;
@@ -96,6 +96,7 @@ accountsRouter.put("/:accountId", async (req, res) => {
     res.sendStatus(401);
     return;
   }
+
   const values = {
     ...(req.body.nickname ? { nickname: req.body.nickname } : null),
     ...(req.body.email ? { email: req.body.email } : null)
