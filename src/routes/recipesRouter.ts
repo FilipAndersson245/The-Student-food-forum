@@ -8,13 +8,15 @@ const recipesRouter = express.Router();
 recipesRouter.get("/", async (req, res) => {
   const query = getRepository(Recipes)
     .createQueryBuilder("recipe")
-    .select(["recipe.id",
+    .select([
+      "recipe.id",
       "recipe.title",
       "recipe.content",
       "recipe.image",
       "recipe.rating",
       "recipe.updatedAt",
-      "recipe.users"])
+      "recipe.users"
+    ])
     .where((qp) => {
       !!req.query.search &&
         qp.andWhere("recipe.title like :title", {
@@ -38,14 +40,10 @@ recipesRouter.get("/", async (req, res) => {
 recipesRouter.post("/", async (req, res) => {
   // const repo = getRepository(Recipes);
   // const recipe = new Recipes();
-
   // if (req.body.userId && req.body.title && req.body.content) {
-  //   recipe.users =
-  //   recipe.nickname = req.body.nickname;
+  //   recipe.users = recipe.nickname = req.body.nickname;
   //   recipe.hash = `TEMPHASH_${req.body.password}`;
-
   //   console.table(user);
-
   //   const { error } = await sqlpromiseHandler(repo.insert(user));
   //   if (error) {
   //     res.sendStatus(500);
