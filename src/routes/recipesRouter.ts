@@ -38,22 +38,25 @@ recipesRouter.get("/", async (req, res) => {
 });
 
 recipesRouter.post("/", async (req, res) => {
-  // const repo = getRepository(Recipes);
-  // const recipe = new Recipes();
-  // if (req.body.userId && req.body.title && req.body.content) {
-  //   recipe.users = recipe.nickname = req.body.nickname;
-  //   recipe.hash = `TEMPHASH_${req.body.password}`;
-  //   console.table(user);
-  //   const { error } = await sqlpromiseHandler(repo.insert(user));
-  //   if (error) {
-  //     res.sendStatus(500);
-  //   } else {
-  //     res.setHeader("location", 10);
-  //     res.sendStatus(200);
-  //   }
-  // } else {
-  //   res.sendStatus(400);
-  // }
+  const repo = getRepository(Recipes);
+  const recipe = new Recipes();
+
+  if (req.body.userId && req.body.title && req.body.content) {
+    recipe.users = req.body.userId;
+    recipe.title = req.body.title;
+
+    console.table(recipe);
+
+    const { error } = await sqlpromiseHandler(repo.insert(recipe));
+    if (error) {
+      res.sendStatus(500);
+    } else {
+      res.setHeader("location", 10); // <---- Not right, change later.
+      res.sendStatus(200);
+    }
+  } else {
+    res.sendStatus(400);
+  }
 });
 
 recipesRouter.delete("/{userId}", async (_req, res) => {

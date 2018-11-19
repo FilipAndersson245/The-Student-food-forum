@@ -19,6 +19,9 @@ export class Recipes {
   @PrimaryColumn({ type: "char", length: 36, primary: true })
   public id!: string;
 
+  @Column({ type: "varchar", length: 64 })
+  public title!: string;
+
   @Column({ type: "varchar", length: 4096 })
   public content!: string;
 

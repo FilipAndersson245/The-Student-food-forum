@@ -36,7 +36,7 @@ userRouter.post("/", async (req, res) => {
   if (req.body.email && req.body.nickname && req.body.password) {
     user.email = req.body.email;
     user.nickname = req.body.nickname;
-    user.hash = `TEMPHASH_${req.body.password}`;
+    user.passwordHash = `TEMPHASH_${req.body.password}`;
 
     console.table(user);
 
@@ -44,7 +44,7 @@ userRouter.post("/", async (req, res) => {
     if (error) {
       res.sendStatus(500);
     } else {
-      res.setHeader("location", 10);
+      res.setHeader("location", 10); // <---- Not right, change later.
       res.sendStatus(200);
     }
   } else {
