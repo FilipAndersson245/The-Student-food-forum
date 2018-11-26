@@ -11,7 +11,7 @@ const accountsRouter = express.Router();
 
 accountsRouter.get("/", async (req, res) => {
   const query = getRepository(Accounts)
-    .createQueryBuilder("acount")
+    .createQueryBuilder("account")
     .select(["account.nickname", "account.image", "account.id"])
     .where((qp) => {
       !!req.query.search &&
