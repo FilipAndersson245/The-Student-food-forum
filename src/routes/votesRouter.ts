@@ -9,12 +9,11 @@ const votesRouter = express.Router();
 votesRouter.get("/", async (req, res) => {
   const id: string | undefined = req.query.accountId;
   if (!id) {
-    res.status(400).send();
-    return;
+    return res.status(400).send();
   }
   const token = authenticateHeader(req.headers.authorization);
-  if (verifyIdentity(id, token)) {
-    res
+  if (!verifyIdentity(id, token)) {
+    return res
       .status(401)
       .json({ errorMessage: "Unauthorized request!" })
       .end();
@@ -29,14 +28,35 @@ votesRouter.get("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    res.status(500).send();
-    return;
+    return res.status(500).send();
   }
-  res.status(200).json(data);
+  return res.status(200).json(data);
 });
 
-votesRouter.post("/", async (_req, res) => {
-  res.sendStatus(200);
+votesRouter.post("/", async (req, res) => {
+  const token = authenticateHeader(req.headers.authorization);
+  if (!token) {
+    return res.status(401).json({ errorMessage: "Unauthorized request!" });
+  }
+
+  const { accountId, recieptId, vote } = req.query;
+  if (!accountId || !recieptId || !vote) {
+    return res.status(400).json({ errorMessage: "Missing requestParameter" });
+  }
+
+  if (token.sub !== accountId) {
+    return res
+      .status(401)
+      .json({ errorMessage: "Cannot create vote for other accounts" });
+  }
+
+  const voteObj = getRepository(Votes).create({ accountId, recieptId, vote });
+  const query = getRepository(Votes).insert(voteObj);
+  const { data, error } = await sqlpromiseHandler(query);
+  if (error) {
+    return res.status(500).send();
+  }
+  return res.sendStatus(200).send(data);
 });
 
 export default votesRouter;
