@@ -3,6 +3,7 @@ import { getRepository } from "typeorm";
 import { Recipes } from "../db/entity/recipes";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { authenticateHeader, verifyIdentity } from "../autentication";
+import { Accounts } from "../db/entity/accounts";
 
 const recipesRouter = express.Router();
 
@@ -42,7 +43,9 @@ recipesRouter.post("/", async (req, res) => {
   const recipe = new Recipes();
 
   if (req.body.accountId && req.body.title && req.body.content) {
-    recipe.users = req.body.accountId;
+    recipe.accounts = await getRepository(Accounts).findOneOrFail({
+      id: req.body.accountId
+    });
     recipe.title = req.body.accountId;
     recipe.content = req.body.content;
     recipe.image = req.body.image;
