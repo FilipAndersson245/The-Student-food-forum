@@ -37,8 +37,8 @@ export class Recipes {
   @OneToMany((_type) => Comments, (comments) => comments.recipes)
   public comments!: Array<Comments>;
 
-  @ManyToOne((_type) => Accounts, (users) => users.id)
-  public users!: Accounts;
+  @ManyToOne((_type) => Accounts, (accounts) => accounts.id)
+  public accounts!: Accounts;
 
   @OneToMany((_type) => Votes, (votes) => votes.recieptId)
   public votes!: Array<Votes>;

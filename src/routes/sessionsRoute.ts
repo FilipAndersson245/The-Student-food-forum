@@ -13,11 +13,12 @@ sessionRouter.post("/", async (req, res) => {
   const grantType: string = req.body.grant_type;
   console.table(req.body);
   if (!username || !password || !grantType) {
-    res.status(400).json({ message: "Missing parameters" });
+    res.status(400).json({ errorMessage: "Missing parameters" });
     return;
   }
   if (grantType !== "password") {
-    res.sendStatus(400).json({ message: "grand_type not supported" });
+    res.sendStatus(400).json({ errorMessage: "grand_type not supported" });
+    return;
   }
   const query = getRepository(Accounts)
     .createQueryBuilder("account")
@@ -27,7 +28,11 @@ sessionRouter.post("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    res.sendStatus(500);
+    res.sendStatus(500).end();
+    return;
+  }
+  if (!data) {
+    res.sendStatus(500).json({ errorMessage: "Account does not exist." });
     return;
   }
   if (await compare(password, data!.passwordHash)) {
@@ -38,9 +43,10 @@ sessionRouter.post("/", async (req, res) => {
         expiresIn: "5 days"
       }
     );
-    res.status(200).send({ auth: true, token });
+    res.status(200).json({ auth: true, token });
+    return;
   } else {
-    res.status(401).json({ message: "bad login attempt" });
+    res.status(401).json({ errorMessage: "bad login attempt" });
     return;
   }
 });

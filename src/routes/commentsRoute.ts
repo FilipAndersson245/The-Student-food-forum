@@ -10,11 +10,11 @@ commentsRouter.post("/", async (_req, res) => {
   res.sendStatus(200);
 });
 
-commentsRouter.delete("/{userId}", async (_req, res) => {
+commentsRouter.delete("/:accountId", async (_req, res) => {
   res.sendStatus(200);
 });
 
-commentsRouter.put("/{userId}", async (_req, res) => {
+commentsRouter.put("/:accountId", async (_req, res) => {
   res.sendStatus(200);
 });
 
