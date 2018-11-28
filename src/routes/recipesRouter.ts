@@ -62,7 +62,7 @@ recipesRouter.post("/", async (req, res) => {
   }
 });
 
-recipesRouter.put("/{recipeId}", async (req, res) => {
+recipesRouter.put("/:recipeId", async (req, res) => {
   const accountId: string | undefined = req.params.userId;
   if (!accountId) {
     res.sendStatus(400);
@@ -105,7 +105,7 @@ recipesRouter.put("/{recipeId}", async (req, res) => {
   }
 });
 
-recipesRouter.delete("/{recipeId}", async (req, res) => {
+recipesRouter.delete("/:recipeId", async (req, res) => {
   const accountId: string | undefined = req.params.accountId;
   if (!accountId) {
     res.sendStatus(400);
