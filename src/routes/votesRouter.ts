@@ -7,6 +7,7 @@ import { sqlpromiseHandler } from "../db/dbHelpers";
 const votesRouter = express.Router();
 
 votesRouter.get("/", async (req, res) => {
+  // JWT AUTH CODE ################################################
   const id: string | undefined = req.query.accountId;
   if (!id) {
     return res.status(400).send();
@@ -18,6 +19,7 @@ votesRouter.get("/", async (req, res) => {
       .json({ errorMessage: "Unauthorized request!" })
       .end();
   }
+  // END #########################################################
 
   const query = getRepository(Votes).find({
     select: ["recieptId"],

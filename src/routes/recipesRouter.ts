@@ -39,6 +39,20 @@ recipesRouter.get("/", async (req, res) => {
 });
 
 recipesRouter.post("/", async (req, res) => {
+  // JWT AUTH CODE ################################################
+  const id: string | undefined = req.query.accountId;
+  if (!id) {
+    return res.status(400).send();
+  }
+  const token = authenticateHeader(req.headers.authorization);
+  if (!verifyIdentity(id, token)) {
+    return res
+      .status(401)
+      .json({ errorMessage: "Unauthorized request!" })
+      .end();
+  }
+  // END #########################################################
+
   const repo = getRepository(Recipes);
   const recipe = new Recipes();
 
@@ -66,16 +80,19 @@ recipesRouter.post("/", async (req, res) => {
 });
 
 recipesRouter.put("/:recipeId", async (req, res) => {
-  const accountId: string | undefined = req.params.userId;
-  if (!accountId) {
-    res.sendStatus(400);
-    return;
+  // JWT AUTH CODE ################################################
+  const id: string | undefined = req.query.accountId;
+  if (!id) {
+    return res.status(400).send();
   }
   const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(accountId, token)) {
-    res.sendStatus(401);
-    return;
+  if (!verifyIdentity(id, token)) {
+    return res
+      .status(401)
+      .json({ errorMessage: "Unauthorized request!" })
+      .end();
   }
+  // END #########################################################
 
   const values = {
     ...(req.body.title ? { title: req.body.title } : null),
@@ -109,26 +126,28 @@ recipesRouter.put("/:recipeId", async (req, res) => {
 });
 
 recipesRouter.delete("/:recipeId", async (req, res) => {
-  const accountId: string | undefined = req.params.accountId;
-  if (!accountId) {
-    res.sendStatus(400);
-    return;
+  // JWT AUTH CODE ################################################
+  const id: string | undefined = req.query.accountId;
+  if (!id) {
+    return res.status(400).send();
   }
-
   const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(accountId, token)) {
-    res.sendStatus(401);
-    return;
+  if (!verifyIdentity(id, token)) {
+    return res
+      .status(401)
+      .json({ errorMessage: "Unauthorized request!" })
+      .end();
   }
+  // END #########################################################
 
-  console.log(accountId);
+  console.log(id);
 
   const repo = getRepository(Recipes);
   const query = repo
     .createQueryBuilder("recipe")
     .delete()
     .where("recipe.id = :recipeId", { recipeId: req.query.recipeId })
-    .andWhere("recipe.users = :userId", { userId: accountId })
+    .andWhere("recipe.users = :userId", { userId: id })
     .execute();
 
   const result = await sqlpromiseHandler(query);
