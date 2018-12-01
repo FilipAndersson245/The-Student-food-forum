@@ -1,4 +1,5 @@
 import { verify } from "jsonwebtoken";
+import { Response, Request } from "express";
 
 interface IJwt {
   readonly sub: string;
@@ -31,4 +32,31 @@ export const authenticateHeader = (autenticationHeader?: string) => {
 export const verifyIdentity = (id: string, token?: IJwt) => {
   if (token && token.sub === id) return true;
   return false;
+};
+
+/**
+ * Verify authentication and return true / false if it is successfully.
+ * id also checked be matching if it exists as a parameter.
+ * @param req
+ * @param res
+ * @param id
+ */
+export const authenticateAndRespondWithMessages = (
+  req: Request,
+  res: Response,
+  id?: string
+) => {
+  const token = authenticateHeader(req.headers.authorization);
+  if (!token) {
+    return !res
+      .status(401)
+      .json({ errorMessage: "Invalid authentication token format" });
+  } else {
+    if (id) {
+      if (verifyIdentity(id, token)) {
+        return !res.status(401).json({ errorMessage: "Unauthorized" });
+      }
+    }
+  }
+  return true;
 };

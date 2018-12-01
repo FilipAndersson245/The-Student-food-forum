@@ -3,7 +3,7 @@ import { Accounts } from "../db/entity/accounts";
 import { getRepository } from "typeorm";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { hash } from "bcrypt";
-import { authenticateHeader, verifyIdentity } from "../autentication";
+import { authenticateAndRespondWithMessages } from "../autentication";
 
 const saltRounds = 7;
 
@@ -41,8 +41,6 @@ accountsRouter.post("/", async (req, res) => {
     account.nickname = req.body.nickname;
     account.passwordHash = await hash(req.body.password, saltRounds);
 
-    console.table(account);
-
     const { error } = await sqlpromiseHandler(repo.insert(account));
     if (error) {
       res.sendStatus(500);
@@ -58,17 +56,12 @@ accountsRouter.post("/", async (req, res) => {
 accountsRouter.delete("/:accountId", async (req, res) => {
   const accountId: string | undefined = req.params.accountId;
   if (!accountId) {
-    res.sendStatus(400);
-    return;
+    return res.status(400).json({ errorMessage: "Missing parameter" });
   }
 
-  const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(accountId, token)) {
-    res.sendStatus(401);
+  if (!authenticateAndRespondWithMessages(req, res)) {
     return;
   }
-
-  console.log(accountId);
 
   const repo = getRepository(Accounts);
   const query = repo
@@ -79,35 +72,28 @@ accountsRouter.delete("/:accountId", async (req, res) => {
 
   const result = await sqlpromiseHandler(query);
   if (result.error) {
-    res.sendStatus(500);
+    return res.status(500).json({ errorMessage: "Deletion failed" });
   } else {
-    res.sendStatus(200);
+    return res.status(200).send();
   }
 });
 
 accountsRouter.put("/:accountId", async (req, res) => {
   const accountId: string | undefined = req.params.accountId;
-
   if (!accountId) {
-    res.sendStatus(400);
-    return;
-  }
-  const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(accountId, token)) {
-    res.sendStatus(401);
-    return;
+    return res.status(400).json({ errorMessage: "Missing parameter" });
   }
 
+  if (!authenticateAndRespondWithMessages(req, res, accountId)) {
+    return;
+  }
   const values = {
     ...(req.body.nickname ? { nickname: req.body.nickname } : null),
     ...(req.body.email ? { email: req.body.email } : null)
   };
 
   if (Object.keys(values).length === 0) {
-    console.table(req.body);
-    console.table(values);
-    res.sendStatus(400);
-    return;
+    return res.status(400).json({ errorMessage: "Missing parameters" });
   }
 
   const repo = getRepository(Accounts);
@@ -119,21 +105,11 @@ accountsRouter.put("/:accountId", async (req, res) => {
     .execute();
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    res.sendStatus(500);
-    return;
+    return res.status(500).json({ errorMessage: "Internal server error" });
   } else {
     console.log(data!.generatedMaps);
-    res.sendStatus(200);
-    return;
+    return res.status(200).send();
   }
-});
-
-accountsRouter.post("/login", async (_req, res) => {
-  res.sendStatus(200);
-});
-
-accountsRouter.post("/logout", async (_req, res) => {
-  res.sendStatus(200);
 });
 
 export default accountsRouter;
