@@ -1,5 +1,6 @@
 import { Entity, PrimaryColumn, ManyToMany } from "typeorm";
 import { Recipes } from "./recipes";
+
 @Entity()
 export class Tags {
   @PrimaryColumn({
