@@ -58,5 +58,5 @@ export const authenticateAndRespondWithMessages = (
       }
     }
   }
-  return true;
+  return token;
 };
