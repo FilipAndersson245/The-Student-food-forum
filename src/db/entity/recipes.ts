@@ -11,7 +11,7 @@ import {
 import { Comments } from "./comments";
 import { Accounts } from "./accounts";
 import { Votes } from "./votes";
-import { Tags } from "./tags";
+import { Tags } from "./Tags";
 
 @Entity()
 export class Recipes {
