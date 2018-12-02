@@ -8,8 +8,24 @@ import { sqlpromiseHandler } from "../db/dbHelpers";
 
 const commentsRouter = express.Router();
 
-commentsRouter.get("/", async (_req, res) => {
-  res.sendStatus(200);
+commentsRouter.get("/", async (req, res) => {
+  const { recipesId } = req.query;
+  if (!recipesId) {
+    return res.status(400).json({ errorMessage: "Missing parameter." });
+  }
+  const query = getRepository(Comments).find({
+    select: ["content", "id", "updatedAt"],
+    order: { updatedAt: "ASC" }, // Change doc
+    skip: parseInt(req.query.offset, 10) || 0,
+    take: parseInt(req.query.limit, 10) || 25
+  });
+
+  const { data, error } = await sqlpromiseHandler(query);
+  if (error || !data) {
+    return res.status(500).json({ errorMessage: "Internal server error" });
+  }
+
+  return res.sendStatus(200).json(data);
 });
 
 commentsRouter.post("/", async (req, res) => {
@@ -42,7 +58,34 @@ commentsRouter.post("/", async (req, res) => {
   return res.status(200).send();
 });
 
-commentsRouter.delete("/:accountId", async (_req, res) => {
+commentsRouter.delete("/:commentId", async (req, res) => {
+  const { commentId } = req.params;
+  if (!commentId) {
+    return res
+      .status(400)
+      .json({ errorMessage: "Missing required parameter in request" });
+  }
+
+  const token = authenticateAndRespondWithMessages(req, res);
+  if (!token) {
+    return;
+  }
+  try {
+    const account = await getRepository(Accounts).findOneOrFail(token.sub);
+    const query = getRepository(Comments).delete({
+      id: commentId,
+      accounts: account
+    });
+
+    const { error } = await sqlpromiseHandler(query);
+    if (error) {
+      return res.status(500).json({ errorMessage: "Failed deleting comment" });
+    }
+    return res.status(200).send();
+  } catch (err) {
+    res.status(400).json({ errorMessage: "Internal server error" });
+  }
+
   return res.status(200).send();
 });
 
