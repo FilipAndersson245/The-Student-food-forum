@@ -83,14 +83,43 @@ commentsRouter.delete("/:commentId", async (req, res) => {
     }
     return res.status(200).send();
   } catch (err) {
-    res.status(400).json({ errorMessage: "Internal server error" });
+    return res.status(400).json({ errorMessage: "Internal server error" });
   }
 
   return res.status(200).send();
 });
 
-commentsRouter.put("/:accountId", async (_req, res) => {
-  return res.status(200).send();
+commentsRouter.put("/:accountId", async (req, res) => {
+  const { commentId } = req.params;
+  if (!commentId) {
+    return res
+      .status(400)
+      .json({ errorMessage: "Missing required parameter in request" });
+  }
+
+  const token = authenticateAndRespondWithMessages(req, res);
+  if (!token) {
+    return;
+  }
+
+  try {
+    const account = await getRepository(Accounts).findOneOrFail(token.sub);
+    const comment = await getRepository(Comments).findOneOrFail({
+      id: commentId,
+      accounts: account
+    });
+    comment.content = req.params.content;
+
+    const query = getRepository(Comments).save(comment);
+
+    const { error } = await sqlpromiseHandler(query);
+    if (error) {
+      return res.status(500).json({ errorMessage: "Failed deleting comment" });
+    }
+    return res.status(200).send();
+  } catch (err) {
+    return res.status(400).json({ errorMessage: "Internal server error" });
+  }
 });
 
 export default commentsRouter;
