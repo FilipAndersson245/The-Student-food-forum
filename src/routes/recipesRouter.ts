@@ -1,5 +1,5 @@
 import express = require("express");
-import { getRepository } from "typeorm";
+import { getRepository, Like } from "typeorm";
 import { Recipes } from "../db/entity/recipes";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { authenticateHeader, verifyIdentity } from "../autentication";
@@ -8,32 +8,27 @@ import { Accounts } from "../db/entity/accounts";
 const recipesRouter = express.Router();
 
 recipesRouter.get("/", async (req, res) => {
-  const query = getRepository(Recipes)
-    .createQueryBuilder("recipe")
-    .select([
-      "recipe.id",
-      "recipe.title",
-      "recipe.content",
-      "recipe.image",
-      "recipe.rating",
-      "recipe.updatedAt",
-      "recipe.users"
-    ])
-    .where((qp) => {
-      !!req.query.search &&
-        qp.andWhere("recipe.title like :title", {
-          title: `%${req.query.search}%`
-        });
-    })
-    .offset(parseInt(req.query.offset, 10) || 0)
-    .take(parseInt(req.query.limit, 10) || 25)
-    .getMany();
+  const query = getRepository(Recipes).find({
+    select: ["id", "title", "content", "image", "rating", "updatedAt"],
+    where: {
+      ...(req.query.id ? { id: Like(`%${req.query.id}%`) } : null),
+      ...(req.query.title ? { title: Like(`%${req.query.title}%`) } : null),
+      ...(req.query.rating ? { rating: Like(`%${req.query.rating}%`) } : null),
+      ...(req.query.updatedAt
+        ? { updatedAt: Like(`%${req.query.updatedAt}%`) }
+        : null)
+    },
+    skip: parseInt(req.query.offset, 10) || 0,
+    take: parseInt(req.query.limit, 10) || 25
+  });
+  console.log(req.query);
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
     console.log(error.errno);
     res.sendStatus(500);
   } else {
+    console.table(data);
     res.json(data);
   }
 });
@@ -42,7 +37,10 @@ recipesRouter.post("/", async (req, res) => {
   // JWT AUTH CODE ################################################
   const id: string | undefined = req.query.accountId;
   if (!id) {
-    return res.status(400).send();
+    return res
+      .status(400)
+      .json({ errorMessage: "Missing ID!" })
+      .end();
   }
   const token = authenticateHeader(req.headers.authorization);
   if (!verifyIdentity(id, token)) {
@@ -53,19 +51,20 @@ recipesRouter.post("/", async (req, res) => {
   }
   // END #########################################################
 
-  const repo = getRepository(Recipes);
-  const recipe = new Recipes();
+  if (req.body.title && req.body.content) {
+    const repo = getRepository(Recipes);
+    const recipe = new Recipes();
 
-  if (req.body.accountId && req.body.title && req.body.content) {
-    recipe.accounts = await getRepository(Accounts).findOneOrFail({
-      id: req.body.accountId
-    });
-    recipe.title = req.body.accountId;
+    try {
+      recipe.accounts = await getRepository(Accounts).findOneOrFail(id);
+    } catch (error) {
+      return res.status(401).json({ errorMessage: "Cannot find account!" });
+    }
+
+    recipe.title = req.body.title;
     recipe.content = req.body.content;
     recipe.image = req.body.image;
     recipe.tags = req.body.tags;
-
-    console.table(recipe); // <----- For debugging
 
     const { error } = await sqlpromiseHandler(repo.insert(recipe));
     if (error) {
