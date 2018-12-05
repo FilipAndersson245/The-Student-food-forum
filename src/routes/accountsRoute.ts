@@ -98,9 +98,9 @@ accountsRouter.put("/:accountId", async (req, res) => {
 
   const repo = getRepository(Accounts);
   const query = repo
-    .createQueryBuilder("account")
+    .createQueryBuilder("accounts")
     .update(Accounts)
-    .where("account.id = :id", { id: accountId })
+    .where("accounts.id = :id", { id: accountId })
     .set(values)
     .execute();
   const { data, error } = await sqlpromiseHandler(query);

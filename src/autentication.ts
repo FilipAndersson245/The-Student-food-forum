@@ -53,7 +53,7 @@ export const authenticateAndRespondWithMessages = (
       .json({ errorMessage: "Invalid authentication token format" });
   } else {
     if (id) {
-      if (verifyIdentity(id, token)) {
+      if (!verifyIdentity(id, token)) {
         return !res.status(401).json({ errorMessage: "Unauthorized" });
       }
     }
