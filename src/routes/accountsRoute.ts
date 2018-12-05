@@ -53,31 +53,6 @@ accountsRouter.post("/", async (req, res) => {
   }
 });
 
-accountsRouter.delete("/:accountId", async (req, res) => {
-  const accountId: string | undefined = req.params.accountId;
-  if (!accountId) {
-    return res.status(400).json({ errorMessage: "Missing parameter" });
-  }
-
-  if (!authenticateAndRespondWithMessages(req, res)) {
-    return;
-  }
-
-  const repo = getRepository(Accounts);
-  const query = repo
-    .createQueryBuilder("account")
-    .delete()
-    .where("account.id = :id", { id: accountId })
-    .execute();
-
-  const result = await sqlpromiseHandler(query);
-  if (result.error) {
-    return res.status(500).json({ errorMessage: "Deletion failed" });
-  } else {
-    return res.status(200).send();
-  }
-});
-
 accountsRouter.put("/:accountId", async (req, res) => {
   const accountId: string | undefined = req.params.accountId;
   if (!accountId) {
@@ -108,6 +83,31 @@ accountsRouter.put("/:accountId", async (req, res) => {
     return res.status(500).json({ errorMessage: "Internal server error" });
   } else {
     console.log(data!.generatedMaps);
+    return res.status(200).send();
+  }
+});
+
+accountsRouter.delete("/:accountId", async (req, res) => {
+  const accountId: string | undefined = req.params.accountId;
+  if (!accountId) {
+    return res.status(400).json({ errorMessage: "Missing parameter" });
+  }
+
+  if (!authenticateAndRespondWithMessages(req, res)) {
+    return;
+  }
+
+  const repo = getRepository(Accounts);
+  const query = repo
+    .createQueryBuilder("accounts")
+    .delete()
+    .where("accounts.id = :id", { id: accountId })
+    .execute();
+
+  const result = await sqlpromiseHandler(query);
+  if (result.error) {
+    return res.status(500).json({ errorMessage: "Deletion failed" });
+  } else {
     return res.status(200).send();
   }
 });

@@ -2,7 +2,7 @@ import express = require("express");
 import { getRepository, Like } from "typeorm";
 import { Recipes } from "../db/entity/recipes";
 import { sqlpromiseHandler } from "../db/dbHelpers";
-import { authenticateHeader, verifyIdentity } from "../autentication";
+import { authenticateAndRespondWithMessages } from "../autentication";
 import { Accounts } from "../db/entity/accounts";
 
 const recipesRouter = express.Router();
@@ -34,29 +34,21 @@ recipesRouter.get("/", async (req, res) => {
 });
 
 recipesRouter.post("/", async (req, res) => {
-  // JWT AUTH CODE ################################################
-  const id: string | undefined = req.query.accountId;
-  if (!id) {
-    return res
-      .status(400)
-      .json({ errorMessage: "Missing ID!" })
-      .end();
+  const accountId: string | undefined = req.query.accountId;
+  if (!accountId) {
+    return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
-  const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(id, token)) {
-    return res
-      .status(401)
-      .json({ errorMessage: "Unauthorized request!" })
-      .end();
+
+  if (!authenticateAndRespondWithMessages(req, res, accountId)) {
+    return;
   }
-  // END #########################################################
 
   if (req.body.title && req.body.content) {
     const repo = getRepository(Recipes);
     const recipe = new Recipes();
 
     try {
-      recipe.accounts = await getRepository(Accounts).findOneOrFail(id);
+      recipe.accounts = await getRepository(Accounts).findOneOrFail(accountId);
     } catch (error) {
       return res.status(401).json({ errorMessage: "Cannot find account!" });
     }
@@ -66,94 +58,99 @@ recipesRouter.post("/", async (req, res) => {
     recipe.image = req.body.image;
     recipe.tags = req.body.tags;
 
-    const { error } = await sqlpromiseHandler(repo.insert(recipe));
+    const { data, error } = await sqlpromiseHandler(repo.insert(recipe));
     if (error) {
-      res.sendStatus(500);
+      return res.status(500).json({ errorMessage: "Internal server error!" });
     } else {
-      res.setHeader("location", 10); // <---- Not right, change later.
-      res.sendStatus(200);
+      res.setHeader("location", `/recipes?id=${data!.identifiers[0].id}`);
+      return res.status(200).send();
     }
   } else {
-    res.sendStatus(400);
+    return res.sendStatus(400);
   }
 });
 
 recipesRouter.put("/:recipeId", async (req, res) => {
-  // JWT AUTH CODE ################################################
-  const id: string | undefined = req.query.accountId;
-  if (!id) {
-    return res.status(400).send();
+  const recipeId = req.params.recipeId;
+  if (!recipeId) {
+    return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
-  const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(id, token)) {
+
+  const token = authenticateAndRespondWithMessages(req, res);
+  if (!token) {
+    return;
+  }
+
+  if (Object.keys(req.body).length === 0) {
+    return res.status(400).json({ errorMessage: "No changes sent!" });
+  }
+
+  let changedRecipe: Recipes;
+  const repo = getRepository(Recipes);
+  try {
+    changedRecipe = await repo.findOneOrFail(recipeId, {
+      relations: ["accounts"]
+    });
+  } catch {
+    return res.status(500).json({ errorMessage: "Failed to find recipe!" });
+  }
+
+  if (!(changedRecipe.accounts.id === token.sub)) {
     return res
       .status(401)
-      .json({ errorMessage: "Unauthorized request!" })
-      .end();
-  }
-  // END #########################################################
-
-  const values = {
-    ...(req.body.title ? { title: req.body.title } : null),
-    ...(req.body.content ? { content: req.body.content } : null),
-    ...(req.body.image ? { image: req.body.image } : null)
-  };
-
-  if (Object.keys(values).length === 0) {
-    console.table(req.body);
-    console.table(values);
-    res.sendStatus(400);
-    return;
+      .json({ errorMessage: "This recipe does not belong to this account!" });
   }
 
-  const repo = getRepository(Recipes);
-  const query = repo
-    .createQueryBuilder("recipe")
-    .update(Recipes)
-    .where("recipe.id = :recipeId", { recipeId: req.query.recipeId })
-    .set(values)
-    .execute();
-  const { data, error } = await sqlpromiseHandler(query);
+  changedRecipe.title = req.body.title ? req.body.title : changedRecipe.title;
+  changedRecipe.content = req.body.content
+    ? req.body.content
+    : changedRecipe.content;
+  changedRecipe.image = req.body.image ? req.body.image : changedRecipe.image;
+
+  const { data, error } = await sqlpromiseHandler(
+    repo.update(changedRecipe.id, changedRecipe)
+  );
+
   if (error) {
-    res.sendStatus(500);
-    return;
+    return res.sendStatus(500);
   } else {
     console.log(data!.generatedMaps);
-    res.sendStatus(200);
-    return;
+    return res.sendStatus(200);
   }
 });
 
 recipesRouter.delete("/:recipeId", async (req, res) => {
-  // JWT AUTH CODE ################################################
-  const id: string | undefined = req.query.accountId;
-  if (!id) {
-    return res.status(400).send();
+  const recipeId = req.params.recipeId;
+  if (!recipeId) {
+    return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
-  const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(id, token)) {
-    return res
-      .status(401)
-      .json({ errorMessage: "Unauthorized request!" })
-      .end();
-  }
-  // END #########################################################
 
-  console.log(id);
+  const token = authenticateAndRespondWithMessages(req, res);
+  if (!token) {
+    return;
+  }
 
   const repo = getRepository(Recipes);
-  const query = repo
-    .createQueryBuilder("recipe")
-    .delete()
-    .where("recipe.id = :recipeId", { recipeId: req.query.recipeId })
-    .andWhere("recipe.users = :userId", { userId: id })
-    .execute();
+  let changedRecipe: Recipes;
+  try {
+    changedRecipe = await repo.findOneOrFail(recipeId, {
+      relations: ["accounts"]
+    });
+  } catch {
+    return res.status(500).json({ errorMessage: "Failed to find recipe!" });
+  }
 
-  const result = await sqlpromiseHandler(query);
+  if (!(changedRecipe.accounts.id === token.sub)) {
+    return res
+      .status(401)
+      .json({ errorMessage: "This recipe does not belong to this account!" });
+  }
+
+  const result = await sqlpromiseHandler(repo.delete(recipeId));
   if (result.error) {
-    res.sendStatus(500);
+    return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
-    res.sendStatus(200);
+    return res.sendStatus(200);
   }
 });
 
