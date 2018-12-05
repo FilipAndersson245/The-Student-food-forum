@@ -8,26 +8,12 @@ import { Accounts } from "../db/entity/accounts";
 const recipesRouter = express.Router();
 
 recipesRouter.get("/", async (req, res) => {
-  const query = getRepository(Recipes)
-    .createQueryBuilder("recipe")
-    .select([
-      "recipe.id",
-      "recipe.title",
-      "recipe.content",
-      "recipe.image",
-      "recipe.rating",
-      "recipe.updatedAt",
-      "recipe.users"
-    ])
-    .where((qp) => {
-      !!req.query.search &&
-        qp.andWhere("recipe.title like :title", {
-          title: `%${req.query.search}%`
-        });
-    })
-    .offset(parseInt(req.query.offset, 10) || 0)
-    .take(parseInt(req.query.limit, 10) || 25)
-    .getMany();
+  const query = getRepository(Recipes).find({
+    select: ["id", "title", "content", "image", "rating", "updatedAt"],
+    where: { title: req.query.title },
+    skip: parseInt(req.query.offset, 10) || 0,
+    take: parseInt(req.query.limit, 10) || 25
+  });
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
