@@ -9,6 +9,7 @@ import bodyparser from "body-parser";
 import morgan from "morgan";
 import { GetConnection } from "./db/getConnection";
 import sessionRouter from "./routes/sessionsRoute";
+import commentsRouter from "./routes/commentsRoute";
 
 GetConnection().then((_connection) => {
   const app = express();
@@ -25,7 +26,7 @@ GetConnection().then((_connection) => {
   app.use(bodyparser.urlencoded({ extended: false }));
   app.use("/accounts", accountsRouter);
   app.use("/votes", votesRouter);
-  app.use("/comments", votesRouter);
+  app.use("/comments", commentsRouter);
   app.use("/tags", tagsRouter);
   app.use("/recipes", recipesRouter);
   app.use("/sessions", sessionRouter);

@@ -14,7 +14,7 @@ commentsRouter.get("/", async (req, res) => {
     return res.status(400).json({ errorMessage: "Missing parameter." });
   }
   const query = getRepository(Comments).find({
-    select: ["content", "id", "updatedAt"],
+    select: ["id", "content", "updatedAt"],
     order: { updatedAt: "ASC" }, // Change doc
     skip: parseInt(req.query.offset, 10) || 0,
     take: parseInt(req.query.limit, 10) || 25
@@ -25,13 +25,13 @@ commentsRouter.get("/", async (req, res) => {
     return res.status(500).json({ errorMessage: "Internal server error" });
   }
 
-  return res.sendStatus(200).json(data);
+  return res.status(200).json(data);
 });
 
 commentsRouter.post("/", async (req, res) => {
   const { content, recipeId } = req.body;
   if (!content || !recipeId) {
-    return res.status(400).json({ errorMessage: "Missing parameter" });
+    return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
 
   const token = authenticateAndRespondWithMessages(req, res);
@@ -50,12 +50,45 @@ commentsRouter.post("/", async (req, res) => {
       getRepository(Comments).insert(comment)
     );
     if (commentResult.error) {
-      return res.status(500).json({ errorMessage: "Failed creating comment" });
+      return res.status(500).json({ errorMessage: "Failed creating comment!" });
     }
   } catch (err) {
-    return res.status(500).json({ errorMessage: "Internal server error." });
+    return res.status(500).json({ errorMessage: "Internal server error!" });
   }
   return res.status(200).send();
+});
+
+commentsRouter.put("/:commentId", async (req, res) => {
+  const { commentId } = req.params;
+  if (!commentId) {
+    return res
+      .status(400)
+      .json({ errorMessage: "Missing required parameter in request!" });
+  }
+
+  const token = authenticateAndRespondWithMessages(req, res);
+  if (!token) {
+    return;
+  }
+
+  try {
+    const account = await getRepository(Accounts).findOneOrFail(token.sub);
+    const comment = await getRepository(Comments).findOneOrFail({
+      id: commentId,
+      accounts: account
+    });
+    comment.content = req.body.content;
+
+    const query = getRepository(Comments).save(comment);
+
+    const { error } = await sqlpromiseHandler(query);
+    if (error) {
+      return res.status(500).json({ errorMessage: "Failed deleting comment!" });
+    }
+    return res.status(200).send();
+  } catch (err) {
+    return res.status(400).json({ errorMessage: "Internal server error!" });
+  }
 });
 
 commentsRouter.delete("/:commentId", async (req, res) => {
@@ -70,47 +103,13 @@ commentsRouter.delete("/:commentId", async (req, res) => {
   if (!token) {
     return;
   }
+
   try {
     const account = await getRepository(Accounts).findOneOrFail(token.sub);
     const query = getRepository(Comments).delete({
       id: commentId,
       accounts: account
     });
-
-    const { error } = await sqlpromiseHandler(query);
-    if (error) {
-      return res.status(500).json({ errorMessage: "Failed deleting comment" });
-    }
-    return res.status(200).send();
-  } catch (err) {
-    return res.status(400).json({ errorMessage: "Internal server error" });
-  }
-
-  return res.status(200).send();
-});
-
-commentsRouter.put("/:accountId", async (req, res) => {
-  const { commentId } = req.params;
-  if (!commentId) {
-    return res
-      .status(400)
-      .json({ errorMessage: "Missing required parameter in request" });
-  }
-
-  const token = authenticateAndRespondWithMessages(req, res);
-  if (!token) {
-    return;
-  }
-
-  try {
-    const account = await getRepository(Accounts).findOneOrFail(token.sub);
-    const comment = await getRepository(Comments).findOneOrFail({
-      id: commentId,
-      accounts: account
-    });
-    comment.content = req.params.content;
-
-    const query = getRepository(Comments).save(comment);
 
     const { error } = await sqlpromiseHandler(query);
     if (error) {
