@@ -40,7 +40,7 @@ export class Recipes {
   @ManyToOne((_type) => Accounts, (accounts) => accounts.id)
   public accounts!: Accounts;
 
-  @OneToMany((_type) => Votes, (votes) => votes.recieptId)
+  @OneToMany((_type) => Votes, (votes) => votes.recipesId)
   public votes!: Array<Votes>;
 
   @ManyToMany((_type) => Tags, (tags) => tags.recipes)

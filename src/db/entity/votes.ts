@@ -8,8 +8,8 @@ export class Votes {
   public vote!: number;
 
   @ManyToOne((_type) => Recipes, (recipes) => recipes.id, { primary: true })
-  public recieptId!: string;
+  public recipesId!: string;
 
-  @ManyToOne((_type) => Accounts, (account) => account.id, { primary: true })
-  public accountId!: string;
+  @ManyToOne((_type) => Accounts, (accounts) => accounts.id, { primary: true })
+  public accountsId!: string;
 }

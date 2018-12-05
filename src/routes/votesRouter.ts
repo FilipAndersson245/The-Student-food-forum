@@ -1,5 +1,8 @@
 import express = require("express");
-import { authenticateHeader, verifyIdentity } from "../autentication";
+import {
+  authenticateHeader,
+  authenticateAndRespondWithMessages
+} from "../autentication";
 import { getRepository } from "typeorm";
 import { Votes } from "../db/entity/votes";
 import { sqlpromiseHandler } from "../db/dbHelpers";
@@ -7,23 +10,18 @@ import { sqlpromiseHandler } from "../db/dbHelpers";
 const votesRouter = express.Router();
 
 votesRouter.get("/", async (req, res) => {
-  // JWT AUTH CODE ################################################
-  const id: string | undefined = req.query.accountId;
-  if (!id) {
-    return res.status(400).send();
+  const accountId: string | undefined = req.query.accountId;
+  if (!accountId) {
+    return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
-  const token = authenticateHeader(req.headers.authorization);
-  if (!verifyIdentity(id, token)) {
-    return res
-      .status(401)
-      .json({ errorMessage: "Unauthorized request!" })
-      .end();
+
+  if (!authenticateAndRespondWithMessages(req, res, accountId)) {
+    return;
   }
-  // END #########################################################
 
   const query = getRepository(Votes).find({
-    select: ["recieptId"],
-    where: { accountId: id, vote: 1 },
+    select: ["recipesId"],
+    where: { accountId, vote: 1 },
     skip: parseInt(req.query.offset, 10) || 0,
     take: parseInt(req.query.limit, 10) || 25
   });
@@ -41,18 +39,18 @@ votesRouter.post("/", async (req, res) => {
     return res.status(401).json({ errorMessage: "Unauthorized request!" });
   }
 
-  const { accountId, recieptId, vote } = req.query;
-  if (!accountId || !recieptId || !vote) {
+  const { accountsId, recipesId, vote } = req.body;
+  if (!accountsId || !recipesId || !vote || vote > 1 || vote < -1) {
     return res.status(400).json({ errorMessage: "Missing requestParameter" });
   }
 
-  if (token.sub !== accountId) {
+  if (token.sub !== accountsId) {
     return res
       .status(401)
       .json({ errorMessage: "Cannot create vote for other accounts" });
   }
 
-  const voteObj = getRepository(Votes).create({ accountId, recieptId, vote });
+  const voteObj = getRepository(Votes).create({ accountsId, recipesId, vote });
   const query = getRepository(Votes).insert(voteObj);
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {

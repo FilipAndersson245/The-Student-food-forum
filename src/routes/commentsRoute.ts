@@ -96,7 +96,7 @@ commentsRouter.delete("/:commentId", async (req, res) => {
   if (!commentId) {
     return res
       .status(400)
-      .json({ errorMessage: "Missing required parameter in request" });
+      .json({ errorMessage: "Missing required parameter in request!" });
   }
 
   const token = authenticateAndRespondWithMessages(req, res);
@@ -113,11 +113,11 @@ commentsRouter.delete("/:commentId", async (req, res) => {
 
     const { error } = await sqlpromiseHandler(query);
     if (error) {
-      return res.status(500).json({ errorMessage: "Failed deleting comment" });
+      return res.status(500).json({ errorMessage: "Failed deleting comment!" });
     }
     return res.status(200).send();
   } catch (err) {
-    return res.status(400).json({ errorMessage: "Internal server error" });
+    return res.status(400).json({ errorMessage: "Internal server error!" });
   }
 });
 

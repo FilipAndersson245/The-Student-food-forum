@@ -11,6 +11,4 @@ export const GetConnection = async () =>
     entities: [process.env.TYPEORM_ENTITIES!],
     database: process.env.TYPEORM_DATABASE,
     synchronize: false // Run this update db (true when pushing update)
-  }).catch((err) => {
-    console.error(err);
-  });
+  }).catch(console.error);
