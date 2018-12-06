@@ -38,6 +38,6 @@ export class Accounts {
   @OneToMany((_type) => Comments, (comments) => comments.accounts)
   public comments!: Array<Comments>;
 
-  @OneToMany((_type) => Votes, (votes) => votes.accountsId)
-  public votes!: Array<Comments>;
+  @OneToMany((_type) => Votes, (votes) => votes.accounts)
+  public votes!: Array<Votes>;
 }

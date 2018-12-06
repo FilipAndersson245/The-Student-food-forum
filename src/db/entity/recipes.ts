@@ -4,14 +4,11 @@ import {
   Column,
   PrimaryColumn,
   OneToMany,
-  ManyToOne,
-  ManyToMany,
-  JoinTable
+  ManyToOne
 } from "typeorm";
 import { Comments } from "./comments";
 import { Accounts } from "./accounts";
 import { Votes } from "./votes";
-import { Tags } from "./Tags";
 
 @Entity()
 export class Recipes {
@@ -40,10 +37,6 @@ export class Recipes {
   @ManyToOne((_type) => Accounts, (accounts) => accounts.id)
   public accounts!: Accounts;
 
-  @OneToMany((_type) => Votes, (votes) => votes.recipesId)
+  @OneToMany((_type) => Votes, (votes) => votes.recipes)
   public votes!: Array<Votes>;
-
-  @ManyToMany((_type) => Tags, (tags) => tags.recipes)
-  @JoinTable()
-  public tags!: Array<Tags>;
 }

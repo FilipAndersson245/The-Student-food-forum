@@ -7,9 +7,11 @@ export class Votes {
   @Column({ type: "tinyint" })
   public vote!: number;
 
-  @ManyToOne((_type) => Recipes, (recipes) => recipes.id, { primary: true })
-  public recipesId!: string;
+  @ManyToOne((_type) => Recipes, (recipes) => recipes.votes, { primary: true })
+  public recipes!: Recipes;
 
-  @ManyToOne((_type) => Accounts, (accounts) => accounts.id, { primary: true })
-  public accountsId!: string;
+  @ManyToOne((_type) => Accounts, (accounts) => accounts.votes, {
+    primary: true
+  })
+  public accounts!: Accounts;
 }
