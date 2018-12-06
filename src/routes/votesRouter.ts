@@ -18,16 +18,11 @@ votesRouter.get("/", async (req, res) => {
     return;
   }
 
-  // const query = getRepository(Votes).find({
-  //   relations: ["recipes"],
-  //   where: { accountId, vote: 1 },
-  //   skip: parseInt(req.query.offset, 10) || 0,
-  //   take: parseInt(req.query.limit, 10) || 25
-  // });
   const repo = getRepository(Votes);
-  const query = repo.createQueryBuilder("votes")
-    .where("votes.accountsId = :accountId", { accountId: 1 })
-    .andWhere("votes.vote", vote: 1)
+  const query = repo
+    .createQueryBuilder("votes")
+    .where("votes.accountsId = :accountId", { accountId })
+    .andWhere("votes.vote", { vote: 1 })
     .execute();
 
   const { data, error } = await sqlpromiseHandler(query);
