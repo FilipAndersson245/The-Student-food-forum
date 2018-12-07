@@ -25,8 +25,8 @@ export class Recipes {
   @Column({ type: "char", length: 32, nullable: true })
   public image!: string;
 
-  @Column({ type: "int", default: () => 0 })
-  public rating!: number;
+  // @Column({ type: "int", default: () => 0 })
+  // public rating!: number;
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
@@ -39,4 +39,12 @@ export class Recipes {
 
   @OneToMany((_type) => Votes, (votes) => votes.recipes)
   public votes!: Array<Votes>;
+
+  public getVotes() {
+    let value = 0;
+    this.votes.forEach((element) => {
+      value += element.vote;
+    });
+    return value;
+  }
 }

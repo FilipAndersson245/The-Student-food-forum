@@ -9,7 +9,7 @@ const recipesRouter = express.Router();
 
 recipesRouter.get("/", async (req, res) => {
   const query = getRepository(Recipes).find({
-    select: ["id", "title", "content", "image", "rating", "updatedAt"],
+    select: ["id", "title", "content", "image", "updatedAt"],
     where: {
       ...(req.query.id ? { id: Like(`%${req.query.id}%`) } : null),
       ...(req.query.title ? { title: Like(`%${req.query.title}%`) } : null),
@@ -28,8 +28,12 @@ recipesRouter.get("/", async (req, res) => {
     console.log(error.errno);
     res.sendStatus(500);
   } else {
-    console.table(data);
-    res.json(data);
+    const dataWithVotes = data!.map((element) => {
+      const vote = element.getVotes();
+      return { ...element, vote };
+    });
+    console.table(dataWithVotes);
+    res.json(dataWithVotes);
   }
 });
 
