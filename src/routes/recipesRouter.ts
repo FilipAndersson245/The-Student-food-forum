@@ -56,7 +56,6 @@ recipesRouter.post("/", async (req, res) => {
     recipe.title = req.body.title;
     recipe.content = req.body.content;
     recipe.image = req.body.image;
-    recipe.tags = req.body.tags;
 
     const { data, error } = await sqlpromiseHandler(repo.insert(recipe));
     if (error) {
