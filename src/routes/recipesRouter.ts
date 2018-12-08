@@ -74,8 +74,7 @@ recipesRouter.post("/", upload.single("image"), async (req, res) => {
     try {
       const generatedUUID = v4();
       console.log(req.file.buffer[0]);
-      const paths = req.file.mimetype.split("/");
-      const extension = paths[paths.length - 1];
+      const extension = req.file.mimetype.split("/").pop();
       await uploadToS3(
         req.file.buffer,
         `${generatedUUID}.${extension}`,
