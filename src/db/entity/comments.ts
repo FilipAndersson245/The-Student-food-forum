@@ -20,9 +20,13 @@ export class Comments {
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
 
-  @ManyToOne((_type) => Recipes, (recipes) => recipes.comments)
+  @ManyToOne((_type) => Recipes, (recipes) => recipes.comments, {
+    onDelete: "CASCADE"
+  })
   public recipes!: Recipes;
 
-  @ManyToOne((_type) => Accounts, (accounts) => accounts.id)
+  @ManyToOne((_type) => Accounts, (accounts) => accounts.comments, {
+    onDelete: "CASCADE"
+  })
   public accounts!: Accounts;
 }

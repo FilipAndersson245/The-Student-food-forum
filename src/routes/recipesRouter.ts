@@ -10,6 +10,7 @@ const recipesRouter = express.Router();
 recipesRouter.get("/", async (req, res) => {
   const query = getRepository(Recipes).find({
     select: ["id", "title", "content", "image", "updatedAt"],
+    relations: ["votes"],
     where: {
       ...(req.query.id ? { id: Like(`%${req.query.id}%`) } : null),
       ...(req.query.title ? { title: Like(`%${req.query.title}%`) } : null),
@@ -21,16 +22,18 @@ recipesRouter.get("/", async (req, res) => {
     skip: parseInt(req.query.offset, 10) || 0,
     take: parseInt(req.query.limit, 10) || 25
   });
-  console.log(req.query);
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
     console.log(error.errno);
     res.sendStatus(500);
   } else {
-    const dataWithVotes = data!.map((element) => {
-      const vote = element.getVotes();
-      return { ...element, vote };
+    const dataWithVotes = data!.map((selectedRecepts) => {
+      let vote = 0;
+      selectedRecepts.votes.forEach((selectedVote) => {
+        vote += selectedVote.vote;
+      });
+      return { ...selectedRecepts, vote, votes: undefined };
     });
     console.table(dataWithVotes);
     res.json(dataWithVotes);
@@ -69,7 +72,7 @@ recipesRouter.post("/", async (req, res) => {
       return res.status(200).send();
     }
   } else {
-    return res.sendStatus(400);
+    return res.status(400).json({ errorMessage: "Bad request!" });
   }
 });
 

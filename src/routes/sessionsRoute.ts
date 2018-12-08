@@ -17,7 +17,7 @@ sessionRouter.post("/", async (req, res) => {
     return;
   }
   if (grantType !== "password") {
-    res.sendStatus(400).json({ errorMessage: "grand_type not supported" });
+    res.status(400).json({ errorMessage: "grand_type not supported" });
     return;
   }
   const query = getRepository(Accounts)
@@ -28,11 +28,11 @@ sessionRouter.post("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    res.sendStatus(500).end();
+    res.status(500).json({ errorMessage: "Internal server error" });
     return;
   }
   if (!data) {
-    res.sendStatus(500).json({ errorMessage: "Account does not exist." });
+    res.status(500).json({ errorMessage: "Account does not exist." });
     return;
   }
   if (await compare(password, data!.passwordHash)) {
