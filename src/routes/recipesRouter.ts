@@ -10,7 +10,7 @@ import { uploadToS3 } from "../s3";
 
 const recipesRouter = express.Router();
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage: multer.memoryStorage() });
 
 recipesRouter.get("/", async (req, res) => {
   const query = getRepository(Recipes).find({
@@ -73,15 +73,21 @@ recipesRouter.post("/", upload.single("image"), async (req, res) => {
     }
     try {
       const generatedUUID = v4();
-      console.table(req.file);
-      uploadToS3(req.file.buffer, generatedUUID, (s3error) => {
-        if (s3error) {
-          console.table(s3error);
-          throw s3error;
-        } else {
-          recipe.imageId = generatedUUID;
+      console.log(req.file.buffer[0]);
+      const paths = req.file.mimetype.split("/");
+      const extension = paths[paths.length - 1];
+      await uploadToS3(
+        req.file.buffer,
+        `${generatedUUID}.${extension}`,
+        (s3error) => {
+          if (s3error) {
+            console.log(s3error);
+            throw s3error;
+          } else {
+            recipe.imageId = generatedUUID;
+          }
         }
-      });
+      );
     } catch {
       return res.status(500).json({ errorMessage: "Image upload failed!" });
     }
