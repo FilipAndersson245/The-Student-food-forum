@@ -4,12 +4,17 @@ import { Recipes } from "../db/entity/recipes";
 import { sqlpromiseHandler } from "../db/dbHelpers";
 import { authenticateAndRespondWithMessages } from "../autentication";
 import { Accounts } from "../db/entity/accounts";
+import { v4 } from "uuid";
+import multer from "multer";
+import { uploadToS3 } from "../s3";
 
 const recipesRouter = express.Router();
 
+const upload = multer({ dest: "uploads/" });
+
 recipesRouter.get("/", async (req, res) => {
   const query = getRepository(Recipes).find({
-    select: ["id", "title", "content", "image", "updatedAt"],
+    select: ["id", "title", "content", "imageId", "updatedAt"],
     relations: ["votes"],
     where: {
       ...(req.query.id ? { id: Like(`%${req.query.id}%`) } : null),
@@ -40,7 +45,7 @@ recipesRouter.get("/", async (req, res) => {
   }
 });
 
-recipesRouter.post("/", async (req, res) => {
+recipesRouter.post("/", upload.single("image"), async (req, res) => {
   const accountId: string | undefined = req.query.accountId;
   if (!accountId) {
     return res.status(400).json({ errorMessage: "Missing parameter!" });
@@ -50,19 +55,39 @@ recipesRouter.post("/", async (req, res) => {
     return;
   }
 
-  if (req.body.title && req.body.content) {
-    const repo = getRepository(Recipes);
-    const recipe = new Recipes();
+  if (!req.body.title || !req.body.content) {
+    return res.status(400).json({ errorMessage: "Missing parameters" });
+  }
+  const repo = getRepository(Recipes);
+  const recipe = new Recipes();
 
+  try {
+    recipe.accounts = await getRepository(Accounts).findOneOrFail(accountId);
+  } catch (error) {
+    return res.status(401).json({ errorMessage: "Cannot find account!" });
+  }
+
+  if (req.file) {
+    if (!/^image\/(jpe?g|png|gif)$/i.test(req.file.mimetype)) {
+      return res.status(400).json({ errorMessage: "Expected image file!" });
+    }
     try {
-      recipe.accounts = await getRepository(Accounts).findOneOrFail(accountId);
-    } catch (error) {
-      return res.status(401).json({ errorMessage: "Cannot find account!" });
+      const generatedUUID = v4();
+      console.table(req.file);
+      uploadToS3(req.file.buffer, generatedUUID, (s3error) => {
+        if (s3error) {
+          console.table(s3error);
+          throw s3error;
+        } else {
+          recipe.imageId = generatedUUID;
+        }
+      });
+    } catch {
+      return res.status(500).json({ errorMessage: "Image upload failed!" });
     }
 
     recipe.title = req.body.title;
     recipe.content = req.body.content;
-    recipe.image = req.body.image;
 
     const { data, error } = await sqlpromiseHandler(repo.insert(recipe));
     if (error) {
@@ -111,7 +136,9 @@ recipesRouter.put("/:recipeId", async (req, res) => {
   changedRecipe.content = req.body.content
     ? req.body.content
     : changedRecipe.content;
-  changedRecipe.image = req.body.image ? req.body.image : changedRecipe.image;
+  changedRecipe.imageId = req.body.image
+    ? req.body.image
+    : changedRecipe.imageId;
 
   const { data, error } = await sqlpromiseHandler(
     repo.update(changedRecipe.id, changedRecipe)
