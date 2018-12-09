@@ -31,7 +31,7 @@ recipesRouter.get("/", async (req, res) => {
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
     console.log(error.errno);
-    res.sendStatus(500);
+    res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
     const dataWithVotes = data!.map((selectedRecepts) => {
       let vote = 0;
@@ -213,7 +213,7 @@ recipesRouter.delete("/:recipeId", async (req, res) => {
   if (result.error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
-    return res.sendStatus(200);
+    return res.status(200).send();
   }
 });
 

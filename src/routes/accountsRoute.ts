@@ -30,9 +30,9 @@ accountsRouter.get("/", async (req, res) => {
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
     console.log(error.errno);
-    res.sendStatus(500);
+    return res.status(500).json({ errorMessage: "Internal server error" });
   } else {
-    res.json(data);
+    return res.status(200).json(data);
   }
 });
 
@@ -54,10 +54,12 @@ accountsRouter.post("/", async (req, res) => {
       res.status(500).json({ errorMessage: "Internal server error!" });
     } else {
       res.setHeader("location", `/accounts${data!.identifiers[0].id}`);
-      res.sendStatus(200);
+      res.status(200).send();
     }
   } else {
-    res.sendStatus(400);
+    res
+      .status(400)
+      .json({ errorMessage: "Missing input required parameter in body!" });
   }
 });
 
