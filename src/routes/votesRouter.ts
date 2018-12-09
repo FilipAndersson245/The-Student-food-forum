@@ -70,7 +70,7 @@ votesRouter.post("/", async (req, res) => {
   if (error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   }
-  return res.status(200).send();
+  return res.status(201).send();
 });
 
 export default votesRouter;

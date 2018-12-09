@@ -11,7 +11,7 @@ const commentsRouter = express.Router();
 commentsRouter.get("/", async (req, res) => {
   const { recipesId } = req.query;
   if (!recipesId) {
-    return res.status(400).json({ errorMessage: "Missing parameter." });
+    return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
   const query = getRepository(Comments).find({
     select: ["id", "content", "updatedAt"],
@@ -22,9 +22,8 @@ commentsRouter.get("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error || !data) {
-    return res.status(500).json({ errorMessage: "Internal server error" });
+    return res.status(500).json({ errorMessage: "Internal server error!" });
   }
-
   return res.status(200).json(data);
 });
 
@@ -55,7 +54,7 @@ commentsRouter.post("/", async (req, res) => {
   } catch (err) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   }
-  return res.status(200).send();
+  return res.status(201).send();
 });
 
 commentsRouter.put("/:commentId", async (req, res) => {

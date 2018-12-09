@@ -48,7 +48,7 @@ accountsRouter.post("/", async (req, res) => {
     const { data, error } = await sqlpromiseHandler(repo.insert(account));
     if (error) {
       if (error.errno === 1062) {
-        res.status(409).json({ errorMessage: "Account already exists!" });
+        res.status(409).json({ errorMessage: "Email already taken!" });
       }
       res.status(500).json({ errorMessage: "Internal server error!" });
     } else {

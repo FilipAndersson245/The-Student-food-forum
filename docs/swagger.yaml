@@ -16,6 +16,7 @@ tags:
   - name: "recipes"
   - name: "comments"
   - name: "votes"
+  - name: "session"
 
 schemes:
   - "http"
@@ -100,7 +101,7 @@ paths:
           schema:
             $ref: "#definitions/error"
         409:
-          description: "Account already exists!"
+          description: "Email already taken!"
           schema:
             $ref: "#definitions/error"
         500:
@@ -142,7 +143,7 @@ paths:
           schema:
             $ref: "#definitions/error"
         401:
-          description: "Cannot find account!"
+          description: "Unauthorized"
           schema:
             $ref: "#definitions/error"
         500:
@@ -154,7 +155,7 @@ paths:
       tags:
         - "accounts"
       summary: "Delete given account."
-      description: ""
+      description: "Deleting a user will delete all of the users uploaded content (account, recipes, comments and votes)."
       parameters:
         - name: "accountId"
           in: "path"
@@ -164,6 +165,10 @@ paths:
       responses:
         200:
           description: "Account succsessfully deleted"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#definitions/error"
         404:
           description: "Account was not found!"
           schema:
@@ -263,6 +268,10 @@ paths:
               type: "string"
         400:
           description: "Bad request!"
+          schema:
+            $ref: "#definitions/error"
+        401:
+          description: "Unauthorized"
           schema:
             $ref: "#definitions/error"
         404:
@@ -366,7 +375,6 @@ paths:
           type: "string"
           required: false
           description: "Get all comments for a specific recipesId"
-
         - in: query
           name: order
           type: string
@@ -390,14 +398,19 @@ paths:
             type: array
             items:
               $ref: "#/definitions/getComments"
-        404:
+        400:
+          description: "Missing parameter!"
           schema:
             $ref: "#definitions/error"
-          description: "No comments found"
+        500:
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
+
     post:
       tags:
         - "comments"
-      summary: "Create new comment."
+      summary: "Create a new comment."
       description: ""
       parameters:
         - in: "body"
@@ -407,18 +420,22 @@ paths:
 
       responses:
         201:
-          description: "Comment successfully created"
+          description: "Comment successfully created!"
         400:
+          description: "Missing parameter!"
           schema:
             $ref: "#definitions/error"
-          description: "Bad request"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#definitions/error"
         500:
+          description: "Internal server error!"
           schema:
             $ref: "#definitions/error"
-          description: "Internal server error"
 
   /comments/{commentId}:
-    put:
+    patch:
       tags:
         - "comments"
       summary: "Edit a given account."
@@ -439,15 +456,19 @@ paths:
                 type: string
       responses:
         200:
-          description: "Successfully changed"
-        404:
+          description: "Successfully changed!"
+        400:
           schema:
             $ref: "#definitions/error"
-          description: "Comment not found"
+          description: "Missing required parameter!"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#definitions/error"
         500:
           schema:
             $ref: "#definitions/error"
-          description: "Internal server error"
+          description: "Internal server error!"
 
     delete:
       tags:
@@ -462,15 +483,19 @@ paths:
           required: true
       responses:
         200:
-          description: "Successfully deleted"
-        404:
+          description: "OK"
+        400:
           schema:
             $ref: "#definitions/error"
-          description: "Comment not found"
+          description: "Missing required parameter!"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#definitions/error"
         500:
           schema:
             $ref: "#definitions/error"
-          description: "Internal server error"
+          description: "Internal server error!"
   ################################################################
   #                          Votes                               #
   ################################################################
@@ -503,32 +528,82 @@ paths:
           default: 0
       responses:
         200:
-          description: ""
+          description: "OK"
           schema:
             type: array
             items:
               $ref: "#/definitions/getVotes"
-        404:
+        400:
           schema:
             $ref: "#definitions/error"
-          description: "Not tags found"
+          description: "Missing parameter!"
+        500:
+          schema:
+            $ref: "#definitions/error"
+          description: "Internal server error!"
+
     post:
       tags:
         - "votes"
-      summary: "Create a vote from a user"
+      summary: "Create a vote from an account."
       description: ""
       parameters:
         - in: body
           name: "vote"
+          description: "Vote paramiter takes -1, 0 or 1 as vaild values. -1 equals a downvote, 0 equals a neutral vote, and 1 equals an upvote."
           schema:
             $ref: "#/definitions/postVotes"
       responses:
         201:
-          description: "Vote created"
-        404:
+          description: "Vote created!"
+        400:
           schema:
             $ref: "#definitions/error"
-          description: "user or recipe dosnt exist"
+          description: "Missing requestParameter!"
+        401:
+          description: "Unauthorized!"
+          schema:
+            $ref: "#definitions/error"
+        500:
+          schema:
+            $ref: "#definitions/error"
+          description: "Internal server error!"
+
+  ################################################################
+  #                          Session                             #
+  ################################################################
+  /session:
+    post:
+      tags:
+        - "session"
+      summary: "Create a session for an account."
+      description: ""
+      parameters:
+        - in: body
+          name: "vote"
+          description: ""
+          schema:
+            $ref: "#/definitions/session"
+      responses:
+        200:
+          description: "OK"
+        400:
+          schema:
+            $ref: "#definitions/error"
+          description: "Bad Request!"
+        401:
+          description: "Unauthorized!"
+          schema:
+            $ref: "#definitions/error"
+        404:
+          description: "Account not found!"
+          schema:
+            $ref: "#definitions/error"
+        500:
+          schema:
+            $ref: "#definitions/error"
+          description: "Internal server error!"
+
 ################################################################
 #                          Models                             #
 ################################################################
@@ -573,15 +648,17 @@ definitions:
     properties:
       accountId:
         type: string
+      recipeId:
+        type: string
       content:
         type: string
       commentId:
         type: string
+      updatedAt:
+        type: string
   postComments:
     type: object
     properties:
-      accountId:
-        type: string
       content:
         type: string
       recipeId:
@@ -589,14 +666,6 @@ definitions:
     required:
       - accountId
       - recipeId
-  tags:
-    type: object
-    properties:
-      id:
-        type: string
-        format: nameOfTag
-    required:
-      - id
   accounts:
     type: object
     properties:
@@ -606,6 +675,16 @@ definitions:
         type: string
       imageId:
         type: string
+  getVotes:
+    type: object
+    properties:
+      title:
+        type: string
+      recipeId:
+        type: string
+      vote:
+        type: integer
+        format: smallint
   postVotes:
     type: object
     properties:
@@ -620,13 +699,16 @@ definitions:
       - accountId
       - recipeId
       - vote
-  getVotes:
+  session:
     type: object
     properties:
-      title:
+      grant_Type:
         type: string
-      recipeId:
+      username:
         type: string
-      vote:
-        type: integer
-        format: smallint
+      password:
+        type: string
+    required:
+      - grant_Type
+      - username
+      - password
