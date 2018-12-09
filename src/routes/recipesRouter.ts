@@ -6,11 +6,11 @@ import { authenticateAndRespondWithMessages } from "../autentication";
 import { Accounts } from "../db/entity/accounts";
 import { v4 } from "uuid";
 import multer from "multer";
-import { uploadToS3 } from "../s3";
+import { uploadRecipeImageToS3, deleteRecipeImageInS3 } from "../s3";
 
 const recipesRouter = express.Router();
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage() }).single("image");
 
 recipesRouter.get("/", async (req, res) => {
   const query = getRepository(Recipes).find({
@@ -45,7 +45,7 @@ recipesRouter.get("/", async (req, res) => {
   }
 });
 
-recipesRouter.post("/", upload.single("image"), async (req, res) => {
+recipesRouter.post("/", upload, async (req, res) => {
   const accountId: string | undefined = req.query.accountId;
   if (!accountId) {
     return res.status(400).json({ errorMessage: "Missing parameter!" });
@@ -73,20 +73,17 @@ recipesRouter.post("/", upload.single("image"), async (req, res) => {
     }
     try {
       const generatedUUID = v4();
-      console.log(req.file.buffer[0]);
-      const extension = req.file.mimetype.split("/").pop();
-      await uploadToS3(
+      await uploadRecipeImageToS3(
         req.file.buffer,
-        `${generatedUUID}.${extension}`,
+        generatedUUID,
+        req.file.mimetype,
         (s3error) => {
           if (s3error) {
-            console.log(s3error);
             throw s3error;
-          } else {
-            recipe.imageId = generatedUUID;
           }
         }
       );
+      recipe.imageId = generatedUUID;
     } catch {
       return res.status(500).json({ errorMessage: "Image upload failed!" });
     }
@@ -106,7 +103,7 @@ recipesRouter.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
-recipesRouter.put("/:recipeId", async (req, res) => {
+recipesRouter.patch("/:recipeId", upload, async (req, res) => {
   const recipeId = req.params.recipeId;
   if (!recipeId) {
     return res.status(400).json({ errorMessage: "Missing parameter!" });
@@ -137,23 +134,40 @@ recipesRouter.put("/:recipeId", async (req, res) => {
       .json({ errorMessage: "This recipe does not belong to this account!" });
   }
 
+  if (req.file) {
+    if (!/^image\/(jpe?g|png|gif)$/i.test(req.file.mimetype)) {
+      return res.status(400).json({ errorMessage: "Expected image file!" });
+    }
+    try {
+      await uploadRecipeImageToS3(
+        req.file.buffer,
+        changedRecipe.imageId,
+        req.file.mimetype,
+        (s3error) => {
+          if (s3error) {
+            throw s3error;
+          }
+        }
+      );
+    } catch {
+      return res.status(500).json({ errorMessage: "Image upload failed!" });
+    }
+  }
+
   changedRecipe.title = req.body.title ? req.body.title : changedRecipe.title;
   changedRecipe.content = req.body.content
     ? req.body.content
     : changedRecipe.content;
-  changedRecipe.imageId = req.body.image
-    ? req.body.image
-    : changedRecipe.imageId;
 
   const { data, error } = await sqlpromiseHandler(
     repo.update(changedRecipe.id, changedRecipe)
   );
 
   if (error) {
-    return res.sendStatus(500);
+    return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
     console.log(data!.generatedMaps);
-    return res.sendStatus(200);
+    return res.status(200).send();
   }
 });
 
@@ -169,22 +183,33 @@ recipesRouter.delete("/:recipeId", async (req, res) => {
   }
 
   const repo = getRepository(Recipes);
-  let changedRecipe: Recipes;
+  let toBeDeletedRecipe: Recipes;
   try {
-    changedRecipe = await repo.findOneOrFail(recipeId, {
+    toBeDeletedRecipe = await repo.findOneOrFail(recipeId, {
       relations: ["accounts"]
     });
   } catch {
     return res.status(500).json({ errorMessage: "Failed to find recipe!" });
   }
 
-  if (!(changedRecipe.accounts.id === token.sub)) {
+  if (!(toBeDeletedRecipe.accounts.id === token.sub)) {
     return res
       .status(401)
       .json({ errorMessage: "This recipe does not belong to this account!" });
   }
 
+  try {
+    await deleteRecipeImageInS3(toBeDeletedRecipe.imageId, (error) => {
+      if (error) {
+        throw error;
+      }
+    });
+  } catch {
+    return res.status(500).json({ errorMessage: "Failed deleting image!" });
+  }
+
   const result = await sqlpromiseHandler(repo.delete(recipeId));
+
   if (result.error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {

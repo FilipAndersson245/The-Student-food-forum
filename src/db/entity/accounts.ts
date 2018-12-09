@@ -29,8 +29,8 @@ export class Accounts {
   @Column({ type: "char", length: 60 })
   public passwordHash!: string;
 
-  @Column({ type: "char", length: 32, nullable: true })
-  public image!: string;
+  @Column({ type: "char", length: 36 })
+  public imageId!: string;
 
   @Column({ type: "timestamp", default: () => `CURRENT_TIMESTAMP` })
   public updatedAt!: string;
