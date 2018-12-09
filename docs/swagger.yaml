@@ -13,10 +13,10 @@ host: "localhost"
 basePath: "/v1"
 tags:
   - name: "accounts"
-  - name: "votes"
-  - name: "comments"
-  - name: "tags"
   - name: "recipes"
+  - name: "comments"
+  - name: "votes"
+
 schemes:
   - "http"
   - "https"
@@ -43,18 +43,14 @@ paths:
       tags:
         - "accounts"
       summary: "Get accounts."
+      consumes:
+        - "application/json"
       description: ""
       parameters:
         - in: query
           name: search
           type: string
-          description: "Query string that will filter search result on accounts nickname."
-        - in: query
-          name: order
-          type: string
-          enum: [alphabetical, rating]
-          description: "How accounts that are returned are sorted."
-          default: rating
+          description: "Query string that will filter search result on account nickname."
         - in: query
           name: limit
           type: integer
@@ -65,7 +61,6 @@ paths:
           type: integer
           description: "How many accounts that will be skipped."
           default: 0
-
       responses:
         200:
           description: "OK"
@@ -73,28 +68,27 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/accounts"
-        # 404:
-        #   description: "Resource not found."
         500:
-          description: "Internal server error."
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
 
     post:
       tags:
         - "accounts"
       summary: "Create a new account."
+      consumes:
+        - "application/json"
       parameters:
         - in: "body"
           name: "account"
           schema:
             type: object
             allOf:
-              - $ref: "#/definitions/userCredentials"
+              - $ref: "#/definitions/postAccount"
             properties:
               nickname:
                 type: string
-
-      consumes:
-        - "application/json"
       responses:
         201:
           description: "Account created."
@@ -102,95 +96,82 @@ paths:
             Location:
               type: "string"
         400:
-          description: "Incorrect requirements or missing Values."
+          description: "Missing required input parameter in body!"
+          schema:
+            $ref: "#definitions/error"
         409:
-          description: "Account already exists on the server."
+          description: "Account already exists!"
+          schema:
+            $ref: "#definitions/error"
         500:
-          description: "Server error."
-  /accounts/{userId}:
-    put:
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
+
+  /accounts/{accountId}:
+    patch:
       tags:
         - "accounts"
       summary: "Edit given account."
       description: ""
+      consumes:
+        - "multipart/form-data"
       parameters:
-        - name: "userId"
+        - name: "accountId"
           in: "path"
-          description: "userId"
+          description: "The id of the account."
           type: "string"
           required: true
-        - name: "account"
-          in: "body"
-          description: "The update to the account. All fields that are not empty in the body will be updated."
-          schema:
-            type: object
-            properties:
-              password:
-                type: string
-              nickname:
-                type: string
-              email:
-                type: string
-              image:
-                type: string
+        - name: "nickname"
+          in: "formData"
+          type: "string"
+          description: "Edit the account nickname. If left blank it will not be edited."
+        - name: "password"
+          in: "formData"
+          type: "string"
+          description: "Edit the account password. If left blank it will not be edited."
+        - name: "image"
+          in: "formData"
+          description: "Add/edit the account image. If left blank it will not be added/edited."
+          type: "file"
       responses:
         200:
           description: "OK"
         400:
-          description: "Incorrect requirements."
+          description: "Missing parameter!"
+          schema:
+            $ref: "#definitions/error"
+        401:
+          description: "Cannot find account!"
+          schema:
+            $ref: "#definitions/error"
         500:
-          description: "Internal server error"
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
+
     delete:
       tags:
         - "accounts"
       summary: "Delete given account."
       description: ""
       parameters:
-        - name: "userId"
+        - name: "accountId"
           in: "path"
-          description: "userId"
+          description: "accountId"
           type: "string"
           required: true
       responses:
         200:
           description: "Account succsessfully deleted"
         404:
-          description: "Account not found."
+          description: "Account was not found!"
+          schema:
+            $ref: "#definitions/error"
         500:
-          description: "Internal server error"
-
-  # /accounts/login:
-  #   post:
-  #     tags:
-  #       - "accounts"
-  #     summary: "Logs account into the platform."
-  #     consumes:
-  #       - "application/json"
-  #     produces:
-  #       - "application/json"
-  #     parameters:
-  #       - in: "body"
-  #         name: "body"
-  #         description: "Login credentials"
-  #         required: true
-  #         schema:
-  #           $ref: "#/definitions/userCredentials"
-  #     responses:
-  #       200:
-  #         description: "Valid login"
-  #       401:
-  #         description: "Unauthorized"
-
-  # /accounts/logout:
-  #   post:
-  #     tags:
-  #       - "accounts"
-  #     summary: "Logs the account out of the platform."
-  #     responses:
-  #       200:
-  #         description: "Successfull logout"
-  #       500:
-  #         description: "Internal server error"
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
   ################################################################
   #                          Recipes                             #
   ################################################################
@@ -204,19 +185,19 @@ paths:
         - in: query
           name: recipesId
           type: string
-          description: "Id of the recipes"
+          description: "Id of the recipes."
         - in: query
           name: title
           type: string
-          description: "Title of the recipes"
+          description: "Title of the recipes."
         - in: query
           name: authorId
           type: string
-          description: "Id of the author"
+          description: "Id of the author."
         - in: query
           name: tags
           type: array
-          description: "list of tags to be filterd by"
+          description: "List of tags to be filterd by."
           items:
             type: string
         - in: query
@@ -242,69 +223,102 @@ paths:
             type: array
             items:
               $ref: "#/definitions/recipes"
-
-        404:
-          description: "No recipes found"
         500:
           description: "Internal server error"
+          schema:
+            $ref: "#definitions/error"
+
     post:
       tags:
         - "recipes"
       summary: "Create new recipes."
+      consumes:
+        - "multipart/form-data"
       parameters:
-        - in: body
-          name: recipe
-          schema:
-            allOf:
-              - $ref: "#/definitions/recipes"
-            properties:
-              tags:
-                type: array
-                items:
-                  type: string
+        - name: "accountId"
+          in: "formData"
+          description: "The id of the account."
+          type: "string"
+          required: true
+        - name: "title"
+          in: "formData"
+          type: "string"
+          description: "The title of the recipe."
+          required: true
+        - name: "content"
+          in: "formData"
+          type: "string"
+          description: "The description of the recipe."
+          required: true
+        - name: "image"
+          in: "formData"
+          description: "Add the recipe image. If left blank it will not be added."
+          type: "file"
       description: ""
       responses:
         201:
-          description: "Recipes created"
+          description: "Recipes created!"
           headers:
             Location:
               type: "string"
+        400:
+          description: "Bad request!"
+          schema:
+            $ref: "#definitions/error"
+        404:
+          description: "Cannot find account!"
+          schema:
+            $ref: "#definitions/error"
         500:
-          description: "Internal server error"
+          schema:
+            $ref: "#definitions/error"
+          description: "Internal server error!"
 
   /recipes/{recipesId}:
-    put:
+    patch:
       tags:
         - "recipes"
       summary: "Edit a given post."
       description: ""
+      consumes:
+        - "multipart/form-data"
       parameters:
-        - name: "recipesId"
-          in: "path"
-          description: "recipesId"
+        - name: "recipeId"
+          in: "formData"
+          description: "The id of the recipe."
           type: "string"
           required: true
-        - name: "recipes"
-          in: "body"
-          schema:
-            type: "object"
-            properties:
-              content:
-                type: string
-              img:
-                type: string
-                format: binary
-              tags:
-                type: array
-                items:
-                  type: string
+        - name: "title"
+          in: "formData"
+          type: "string"
+          description: "Edited title. If left blank it will not be edited."
+        - name: "content"
+          in: "formData"
+          type: "string"
+          description: "Edited description. If left blank it will not be edited."
+        - name: "image"
+          in: "formData"
+          description: "Add/change the recipe image. If left blank it will not be added/changed."
+          type: "file"
       responses:
         200:
-          description: "Successfully changed"
-        404:
-          description: "recipes not found"
+          description: "Successfully changed!"
         400:
-          description: "Bad request"
+          description: "Bad request!"
+          schema:
+            $ref: "#definitions/error"
+        401:
+          description: "Unauthorized!"
+          schema:
+            $ref: "#definitions/error"
+        404:
+          description: "Recipes not found!"
+          schema:
+            $ref: "#definitions/error"
+        500:
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
 
     delete:
       tags:
@@ -312,19 +326,31 @@ paths:
       summary: "Delete a given recipes."
       description: ""
       parameters:
-        - name: "recipesId"
+        - name: "recipeId"
           in: "path"
-          description: "recipesId"
+          description: "RecipeId"
           type: "string"
           required: true
       responses:
         200:
-          description: "Successfully deleted recipes"
-
-        404:
-          description: "Post not found"
+          description: "Successfully deleted recipes!"
         400:
-          description: "Bad request"
+          description: "Bad request!"
+          schema:
+            $ref: "#definitions/error"
+        401:
+          description: "Unauthorized!"
+          schema:
+            $ref: "#definitions/error"
+        404:
+          description: "Recipe not found!"
+          schema:
+            $ref: "#definitions/error"
+        500:
+          description: "Internal server error!"
+          schema:
+            $ref: "#definitions/error"
+
   ################################################################
   #                          Comments                            #
   ################################################################
@@ -365,6 +391,8 @@ paths:
             items:
               $ref: "#/definitions/getComments"
         404:
+          schema:
+            $ref: "#definitions/error"
           description: "No comments found"
     post:
       tags:
@@ -381,8 +409,12 @@ paths:
         201:
           description: "Comment successfully created"
         400:
+          schema:
+            $ref: "#definitions/error"
           description: "Bad request"
         500:
+          schema:
+            $ref: "#definitions/error"
           description: "Internal server error"
 
   /comments/{commentId}:
@@ -409,8 +441,12 @@ paths:
         200:
           description: "Successfully changed"
         404:
+          schema:
+            $ref: "#definitions/error"
           description: "Comment not found"
         500:
+          schema:
+            $ref: "#definitions/error"
           description: "Internal server error"
 
     delete:
@@ -428,48 +464,25 @@ paths:
         200:
           description: "Successfully deleted"
         404:
+          schema:
+            $ref: "#definitions/error"
           description: "Comment not found"
         500:
-          description: "Internal server error"
-  ################################################################
-  #                          Tags                                #
-  ################################################################
-  /tags:
-    get:
-      tags:
-        - "tags"
-      summary: "Get all tags."
-      description: ""
-      parameters:
-        - in: query
-          name: filter
-          type: string
-          description: "Filter tags based on a query"
-        - in: query
-          name: recipesId
-          type: string
-          description: "get all tags for a specific recipe"
-      responses:
-        200:
-          description: "OK"
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/tags"
-        404:
-          description: "Not tags found"
-        500:
+            $ref: "#definitions/error"
           description: "Internal server error"
-
+  ################################################################
+  #                          Votes                               #
+  ################################################################
   /votes:
     get:
       tags:
         - "votes"
-      summary: "Get votes from one account."
-      description: "Gets all the accounts own votes"
+      summary: "Get votes from one user."
+      description: "Gets all the users own votes"
       parameters:
         - in: query
-          name: "userId"
+          name: "accountId"
           type: string
           required: true
         - in: query
@@ -496,11 +509,13 @@ paths:
             items:
               $ref: "#/definitions/getVotes"
         404:
+          schema:
+            $ref: "#definitions/error"
           description: "Not tags found"
     post:
       tags:
         - "votes"
-      summary: "Create a vote from a account"
+      summary: "Create a vote from a user"
       description: ""
       parameters:
         - in: body
@@ -511,18 +526,25 @@ paths:
         201:
           description: "Vote created"
         404:
-          description: "account or recipe dosnt exist"
+          schema:
+            $ref: "#definitions/error"
+          description: "user or recipe dosnt exist"
 ################################################################
 #                          Models                             #
 ################################################################
 definitions:
-  userCredentials:
+  error:
+    type: object
+    properties:
+      errorMessage:
+        type: string
+  postAccount:
     type: object
     properties:
       email:
-        type: "string"
+        type: string
         format: "email"
-        example: "bob@gmail.com"
+        example: "foo@gmail.com"
       password:
         type: string
         format: "password"
@@ -532,22 +554,24 @@ definitions:
   recipes:
     type: object
     properties:
-      userId:
+      accountId:
         type: string
         format: uuid
       title:
         type: string
       content:
         type: string
-      img:
+      imageId:
         type: string
         format: path
+      updatedAt:
+        type: string
     required:
-      - userId
+      - accountId
   getComments:
     type: object
     properties:
-      userId:
+      accountId:
         type: string
       content:
         type: string
@@ -556,14 +580,14 @@ definitions:
   postComments:
     type: object
     properties:
-      userId:
+      accountId:
         type: string
       content:
         type: string
       recipeId:
         type: string
     required:
-      - userId
+      - accountId
       - recipeId
   tags:
     type: object
@@ -576,17 +600,16 @@ definitions:
   accounts:
     type: object
     properties:
+      id:
+        type: string
       nickname:
         type: string
-      img:
-        type: string
-        format: path
-      id:
+      imageId:
         type: string
   postVotes:
     type: object
     properties:
-      userId:
+      accountId:
         type: string
       recipeId:
         type: string
@@ -594,7 +617,7 @@ definitions:
         type: integer
         format: smallint
     required:
-      - userId
+      - accountId
       - recipeId
       - vote
   getVotes:

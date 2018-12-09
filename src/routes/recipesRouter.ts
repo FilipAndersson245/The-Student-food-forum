@@ -41,12 +41,12 @@ recipesRouter.get("/", async (req, res) => {
       return { ...selectedRecepts, vote, votes: undefined };
     });
     console.table(dataWithVotes);
-    res.json(dataWithVotes);
+    res.status(200).json(dataWithVotes);
   }
 });
 
 recipesRouter.post("/", upload, async (req, res) => {
-  const accountId: string | undefined = req.query.accountId;
+  const accountId: string | undefined = req.body.accountId;
   if (!accountId) {
     return res.status(400).json({ errorMessage: "Missing parameter!" });
   }
@@ -56,7 +56,7 @@ recipesRouter.post("/", upload, async (req, res) => {
   }
 
   if (!req.body.title || !req.body.content) {
-    return res.status(400).json({ errorMessage: "Missing parameters" });
+    return res.status(400).json({ errorMessage: "Missing parameters!" });
   }
   const repo = getRepository(Recipes);
   const recipe = new Recipes();
@@ -64,7 +64,7 @@ recipesRouter.post("/", upload, async (req, res) => {
   try {
     recipe.accounts = await getRepository(Accounts).findOneOrFail(accountId);
   } catch (error) {
-    return res.status(401).json({ errorMessage: "Cannot find account!" });
+    return res.status(404).json({ errorMessage: "Cannot find account!" });
   }
 
   if (req.file) {
@@ -87,19 +87,17 @@ recipesRouter.post("/", upload, async (req, res) => {
     } catch {
       return res.status(500).json({ errorMessage: "Image upload failed!" });
     }
+  }
 
-    recipe.title = req.body.title;
-    recipe.content = req.body.content;
+  recipe.title = req.body.title;
+  recipe.content = req.body.content;
 
-    const { data, error } = await sqlpromiseHandler(repo.insert(recipe));
-    if (error) {
-      return res.status(500).json({ errorMessage: "Internal server error!" });
-    } else {
-      res.setHeader("location", `/recipes?id=${data!.identifiers[0].id}`);
-      return res.status(200).send();
-    }
+  const { data, error } = await sqlpromiseHandler(repo.insert(recipe));
+  if (error) {
+    return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
-    return res.status(400).json({ errorMessage: "Bad request!" });
+    res.setHeader("location", `/recipes?id=${data!.identifiers[0].id}`);
+    return res.status(201).send();
   }
 });
 
@@ -189,7 +187,7 @@ recipesRouter.delete("/:recipeId", async (req, res) => {
       relations: ["accounts"]
     });
   } catch {
-    return res.status(500).json({ errorMessage: "Failed to find recipe!" });
+    return res.status(404).json({ errorMessage: "Failed to find recipe!" });
   }
 
   if (!(toBeDeletedRecipe.accounts.id === token.sub)) {

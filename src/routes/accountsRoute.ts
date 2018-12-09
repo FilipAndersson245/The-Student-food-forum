@@ -16,7 +16,7 @@ const upload = multer({ storage: multer.memoryStorage() }).single("image");
 accountsRouter.get("/", async (req, res) => {
   const query = getRepository(Accounts)
     .createQueryBuilder("account")
-    .select(["account.nickname", "account.image", "account.id"])
+    .select(["account.nickname", "account.imageId", "account.id"])
     .where((qp) => {
       !!req.query.search &&
         qp.andWhere("account.nickname like :nickname", {
@@ -29,8 +29,7 @@ accountsRouter.get("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    console.log(error.errno);
-    return res.status(500).json({ errorMessage: "Internal server error" });
+    return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
     return res.status(200).json(data);
   }
@@ -54,12 +53,12 @@ accountsRouter.post("/", async (req, res) => {
       res.status(500).json({ errorMessage: "Internal server error!" });
     } else {
       res.setHeader("location", `/accounts${data!.identifiers[0].id}`);
-      res.status(200).send();
+      res.status(201).send();
     }
   } else {
     res
       .status(400)
-      .json({ errorMessage: "Missing input required parameter in body!" });
+      .json({ errorMessage: "Missing required input parameter in body!" });
   }
 });
 
@@ -118,11 +117,10 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
     .where("accounts.id = :id", { id: accountId })
     .set(values)
     .execute();
-  const { data, error } = await sqlpromiseHandler(query);
+  const { error } = await sqlpromiseHandler(query);
   if (error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
-    console.log(data!.generatedMaps);
     return res.status(200).send();
   }
 });
@@ -137,8 +135,13 @@ accountsRouter.delete("/:accountId", async (req, res) => {
     return;
   }
 
+  let account: Accounts;
   try {
-    const account = await getRepository(Accounts).findOneOrFail(accountId);
+    account = await getRepository(Accounts).findOneOrFail(accountId);
+  } catch {
+    return res.status(404).json({ errorMessage: "Account was not found!" });
+  }
+  try {
     deleteAccountImageInS3(account.imageId, (error) => {
       if (error) {
         throw error;
