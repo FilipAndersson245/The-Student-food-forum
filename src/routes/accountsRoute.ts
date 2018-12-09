@@ -51,7 +51,7 @@ accountsRouter.post("/", async (req, res) => {
       if (error.errno === 1062) {
         res.status(409).json({ errorMessage: "Account already exists!" });
       }
-      res.status(500).json({ errorMessage: "Internal server error!" }); // <-- may check for duplicate also
+      res.status(500).json({ errorMessage: "Internal server error!" });
     } else {
       res.setHeader("location", `/accounts${data!.identifiers[0].id}`);
       res.sendStatus(200);
