@@ -3,37 +3,24 @@ swagger: "2.0"
 info:
   version: 1.0.0
   title: "The Student Food forum"
-  description: "A forum API where accounts can post recipts about food and comment to them."
+  description: |
+    A forum API where accounts can post recipts about food and comment to them.
+    The application uses bearer token to authenticate requests.
+    This token is created by requests to the /sessionrouter.
+
+    All data is bound to the account and if ever deleted all other data will be cascaded.
+    Comments are bound to the recipe and will also cascade if recipe is deleted.
+
   contact:
-    name: "Filip Andersson"
-  license:
-    name: "MIT"
-    url: "http://opensource.org/licenses/MIT"
+    name: "Filip Andersson, Marcus Gullstrand"
 host: "localhost"
 basePath: "/v1"
 tags:
-  - name: "accounts"
+  - name: "session"
   - name: "recipes"
+  - name: "accounts"
   - name: "comments"
   - name: "votes"
-  - name: "session"
-
-schemes:
-  - "http"
-  - "https"
-
-securityDefinitions:
-  OAuth2:
-    type: oauth2
-    flow: accessCode
-    authorizationUrl: "https://localhost:3000/authorize"
-    tokenUrl: "https://exemple.com/oauth/token"
-    scopes:
-      account: Grand access to all content and possibility to edit own content.
-      admin: All access of account and the power to change others posts
-security:
-  - ApiKeyAuth: []
-  - OAuth2: [account, admin]
 
 paths:
   ################################################################
@@ -44,7 +31,7 @@ paths:
       tags:
         - "accounts"
       summary: "Get accounts."
-      consumes:
+      produces:
         - "application/json"
       description: ""
       parameters:
@@ -72,7 +59,7 @@ paths:
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
     post:
       tags:
@@ -99,15 +86,15 @@ paths:
         400:
           description: "Missing required input parameter in body!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         409:
           description: "Email already taken!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
   /accounts/{accountId}:
     patch:
@@ -118,6 +105,11 @@ paths:
       consumes:
         - "multipart/form-data"
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "accountId"
           in: "path"
           description: "The id of the account."
@@ -141,15 +133,15 @@ paths:
         400:
           description: "Missing parameter!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         401:
           description: "Unauthorized"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
     delete:
       tags:
@@ -157,9 +149,14 @@ paths:
       summary: "Delete given account."
       description: "Deleting a user will delete all of the users uploaded content (account, recipes, comments and votes)."
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "accountId"
           in: "path"
-          description: "accountId"
+          description: "Is of the account"
           type: "string"
           required: true
       responses:
@@ -168,15 +165,15 @@ paths:
         401:
           description: "Unauthorized"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         404:
           description: "Account was not found!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
   ################################################################
   #                          Recipes                             #
   ################################################################
@@ -186,6 +183,8 @@ paths:
         - "recipes"
       summary: "Get all recipes."
       description: ""
+      produces:
+        - "application/json"
       parameters:
         - in: query
           name: recipesId
@@ -199,18 +198,6 @@ paths:
           name: authorId
           type: string
           description: "Id of the author."
-        - in: query
-          name: tags
-          type: array
-          description: "List of tags to be filterd by."
-          items:
-            type: string
-        - in: query
-          name: order
-          type: string
-          enum: [alphabetical, time, rating]
-          description: "How recipes are sorted."
-          default: rating
         - in: query
           name: limit
           type: integer
@@ -231,7 +218,7 @@ paths:
         500:
           description: "Internal server error"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
     post:
       tags:
@@ -240,6 +227,11 @@ paths:
       consumes:
         - "multipart/form-data"
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "accountId"
           in: "formData"
           description: "The id of the account."
@@ -269,21 +261,20 @@ paths:
         400:
           description: "Bad request!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         401:
           description: "Unauthorized"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         404:
           description: "Cannot find account!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Internal server error!"
-
-  /recipes/{recipesId}:
+  /recipes/{recipeId}:
     patch:
       tags:
         - "recipes"
@@ -292,8 +283,13 @@ paths:
       consumes:
         - "multipart/form-data"
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "recipeId"
-          in: "formData"
+          in: "path"
           description: "The id of the recipe."
           type: "string"
           required: true
@@ -315,19 +311,19 @@ paths:
         400:
           description: "Bad request!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         401:
           description: "Unauthorized!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         404:
           description: "Recipes not found!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
     delete:
       tags:
@@ -335,6 +331,11 @@ paths:
       summary: "Delete a given recipes."
       description: ""
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "recipeId"
           in: "path"
           description: "RecipeId"
@@ -346,19 +347,19 @@ paths:
         400:
           description: "Bad request!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         401:
           description: "Unauthorized!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         404:
           description: "Recipe not found!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
   ################################################################
   #                          Comments                            #
@@ -369,18 +370,14 @@ paths:
         - "comments"
       summary: "Get all comments."
       description: ""
+      produces:
+        - "application/json"
       parameters:
         - in: "query"
           name: "recipesId"
           type: "string"
           required: false
           description: "Get all comments for a specific recipesId"
-        - in: query
-          name: order
-          type: string
-          enum: [alphabetical, time]
-          description: "How accounts are returned accounts are sorted."
-          default: time
         - in: query
           name: limit
           type: integer
@@ -401,18 +398,25 @@ paths:
         400:
           description: "Missing parameter!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
     post:
       tags:
         - "comments"
       summary: "Create a new comment."
       description: ""
+      consumes:
+        - "application/json"
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - in: "body"
           name: "comment"
           schema:
@@ -424,23 +428,30 @@ paths:
         400:
           description: "Missing parameter!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         401:
           description: "Unauthorized"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           description: "Internal server error!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
 
   /comments/{commentId}:
     patch:
       tags:
         - "comments"
       summary: "Edit a given account."
+      consumes:
+        - "application/json"
       description: ""
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "commentId"
           in: "path"
           description: "comment Id"
@@ -459,15 +470,15 @@ paths:
           description: "Successfully changed!"
         400:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Missing required parameter!"
         401:
           description: "Unauthorized"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Internal server error!"
 
     delete:
@@ -476,6 +487,11 @@ paths:
       summary: "Delete a given account."
       description: ""
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - name: "commentId"
           in: "path"
           description: "comment id"
@@ -486,15 +502,15 @@ paths:
           description: "OK"
         400:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Missing required parameter!"
         401:
           description: "Unauthorized"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Internal server error!"
   ################################################################
   #                          Votes                               #
@@ -506,16 +522,15 @@ paths:
       summary: "Get votes from one user."
       description: "Gets all the users own votes"
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - in: query
           name: "accountId"
           type: string
           required: true
-        - in: query
-          name: order
-          type: string
-          enum: [alphabetical, time, rating]
-          description: "How votes are sorted."
-          default: rating
         - in: query
           name: limit
           type: integer
@@ -535,11 +550,11 @@ paths:
               $ref: "#/definitions/getVotes"
         400:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Missing parameter!"
         500:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Internal server error!"
 
     post:
@@ -548,6 +563,11 @@ paths:
       summary: "Create a vote from an account."
       description: ""
       parameters:
+        - in: "header"
+          name: "Authorization"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
         - in: body
           name: "vote"
           description: "Vote paramiter takes -1, 0 or 1 as vaild values. -1 equals a downvote, 0 equals a neutral vote, and 1 equals an upvote."
@@ -558,15 +578,15 @@ paths:
           description: "Vote created!"
         400:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Missing requestParameter!"
         401:
           description: "Unauthorized!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Internal server error!"
 
   ################################################################
@@ -577,7 +597,11 @@ paths:
       tags:
         - "session"
       summary: "Create a session for an account."
-      description: ""
+      description: "Used to create a new session. If successful it will returns a JWT that should be sent be should be sent on specified requests."
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
       parameters:
         - in: body
           name: "vote"
@@ -587,21 +611,23 @@ paths:
       responses:
         200:
           description: "OK"
+          schema:
+            $ref: "#/definitions/sessionResponse"
         400:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Bad Request!"
         401:
           description: "Unauthorized!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         404:
           description: "Account not found!"
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
         500:
           schema:
-            $ref: "#definitions/error"
+            $ref: "#/definitions/error"
           description: "Internal server error!"
 
 ################################################################
@@ -712,3 +738,10 @@ definitions:
       - grant_Type
       - username
       - password
+  sessionResponse:
+    type: object
+    properties:
+      auth:
+        type: string
+      token:
+        type: string

@@ -1,0 +1,816 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: The Student Food forum
+  description: A forum API where accounts can post recipts about food and comment to them.
+  contact:
+    name: Filip Andersson
+  license:
+    name: MIT
+    url: "http://opensource.org/licenses/MIT"
+tags:
+  - name: accounts
+  - name: recipes
+  - name: comments
+  - name: votes
+  - name: session
+paths:
+  /accounts:
+    get:
+      tags:
+        - accounts
+      summary: Get accounts.
+      description: ""
+      parameters:
+        - in: query
+          name: search
+          description: Query string that will filter search result on account nickname.
+          schema:
+            type: string
+        - in: query
+          name: limit
+          description: How many accounts will be returned.
+          schema:
+            type: integer
+            default: 25
+        - in: query
+          name: offset
+          description: How many accounts that will be skipped.
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/accounts"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+    post:
+      tags:
+        - accounts
+      summary: Create a new account.
+      responses:
+        "201":
+          description: Account created.
+          headers:
+            Location:
+              schema:
+                type: string
+        "400":
+          description: Missing required input parameter in body!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "409":
+          description: Email already taken!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              allOf:
+                - $ref: "#/components/schemas/postAccount"
+              properties:
+                nickname:
+                  type: string
+  "/accounts/{accountId}":
+    patch:
+      tags:
+        - accounts
+      summary: Edit given account.
+      description: ""
+      parameters:
+        - name: accountId
+          in: path
+          description: The id of the account.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Missing parameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  description: >-
+                    Edit the account nickname. If left blank it will not be
+                    edited.
+                  type: string
+                password:
+                  description: >-
+                    Edit the account password. If left blank it will not be
+                    edited.
+                  type: string
+                image:
+                  description: >-
+                    Add/edit the account image. If left blank it will not be
+                    added/edited.
+                  type: string
+                  format: binary
+    delete:
+      tags:
+        - accounts
+      summary: Delete given account.
+      description: >-
+        Deleting a user will delete all of the users uploaded content (account,
+        recipes, comments and votes).
+      parameters:
+        - name: accountId
+          in: path
+          description: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Account succsessfully deleted
+        "401":
+          description: Unauthorized
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "404":
+          description: Account was not found!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+  /recipes:
+    get:
+      tags:
+        - recipes
+      summary: Get all recipes.
+      description: ""
+      parameters:
+        - in: query
+          name: recipesId
+          description: Id of the recipes.
+          schema:
+            type: string
+        - in: query
+          name: title
+          description: Title of the recipes.
+          schema:
+            type: string
+        - in: query
+          name: authorId
+          description: Id of the author.
+          schema:
+            type: string
+        - in: query
+          name: tags
+          description: List of tags to be filterd by.
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: order
+          description: How recipes are sorted.
+          schema:
+            type: string
+            enum:
+              - alphabetical
+              - time
+              - rating
+            default: rating
+        - in: query
+          name: limit
+          description: How many recipes will be returned.
+          schema:
+            type: integer
+            default: 25
+        - in: query
+          name: offset
+          description: How many recipes that will be skipped.
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/recipes"
+        "500":
+          description: Internal server error
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+    post:
+      tags:
+        - recipes
+      summary: Create new recipes.
+      description: ""
+      responses:
+        "201":
+          description: Recipes created!
+          headers:
+            Location:
+              schema:
+                type: string
+        "400":
+          description: Bad request!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "404":
+          description: Cannot find account!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                accountId:
+                  description: The id of the account.
+                  type: string
+                title:
+                  description: The title of the recipe.
+                  type: string
+                content:
+                  description: The description of the recipe.
+                  type: string
+                image:
+                  description: Add the recipe image. If left blank it will not be added.
+                  type: string
+                  format: binary
+              required:
+                - accountId
+                - title
+                - content
+  "/recipes/{recipeId}":
+    patch:
+      tags:
+        - recipes
+      summary: Edit a given post.
+      description: ""
+      parameters:
+        - name: recipeId
+          in: path
+          description: The id of the recipe.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully changed!
+        "400":
+          description: Bad request!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "404":
+          description: Recipes not found!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  description: Edited title. If left blank it will not be edited.
+                  type: string
+                content:
+                  description: Edited description. If left blank it will not be edited.
+                  type: string
+                image:
+                  description: >-
+                    Add/change the recipe image. If left blank it will not be
+                    added/changed.
+                  type: string
+                  format: binary
+    delete:
+      tags:
+        - recipes
+      summary: Delete a given recipes.
+      description: ""
+      parameters:
+        - name: recipeId
+          in: path
+          description: RecipeId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully deleted recipes!
+        "400":
+          description: Bad request!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "404":
+          description: Recipe not found!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+  /comments:
+    get:
+      tags:
+        - comments
+      summary: Get all comments.
+      description: ""
+      parameters:
+        - in: query
+          name: recipesId
+          required: false
+          description: Get all comments for a specific recipesId
+          schema:
+            type: string
+        - in: query
+          name: order
+          description: How accounts are returned accounts are sorted.
+          schema:
+            type: string
+            enum:
+              - alphabetical
+              - time
+            default: time
+        - in: query
+          name: limit
+          description: How many comments will be returned.
+          schema:
+            type: integer
+            default: 25
+        - in: query
+          name: offset
+          description: How many comments that will be skipped.
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/getComments"
+        "400":
+          description: Missing parameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+    post:
+      tags:
+        - comments
+      summary: Create a new comment.
+      description: ""
+      responses:
+        "201":
+          description: Comment successfully created!
+        "400":
+          description: Missing parameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/postComments"
+  "/comments/{commentId}":
+    patch:
+      tags:
+        - comments
+      summary: Edit a given account.
+      description: ""
+      parameters:
+        - name: commentId
+          in: path
+          description: comment Id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully changed!
+        "400":
+          description: Missing required parameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+        description: The content of comment
+    delete:
+      tags:
+        - comments
+      summary: Delete a given account.
+      description: ""
+      parameters:
+        - name: commentId
+          in: path
+          description: comment id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Missing required parameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+  /votes:
+    get:
+      tags:
+        - votes
+      summary: Get votes from one user.
+      description: Gets all the users own votes
+      parameters:
+        - in: query
+          name: accountId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: order
+          description: How votes are sorted.
+          schema:
+            type: string
+            enum:
+              - alphabetical
+              - time
+              - rating
+            default: rating
+        - in: query
+          name: limit
+          description: How many votes will be returned.
+          schema:
+            type: integer
+            default: 25
+        - in: query
+          name: offset
+          description: How many votes that will be skipped.
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/getVotes"
+        "400":
+          description: Missing parameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+    post:
+      tags:
+        - votes
+      summary: Create a vote from an account.
+      description: ""
+      responses:
+        "201":
+          description: Vote created!
+        "400":
+          description: Missing requestParameter!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/postVotes"
+        description: >-
+          Vote paramiter takes -1, 0 or 1 as vaild values. -1 equals a downvote,
+          0 equals a neutral vote, and 1 equals an upvote.
+  /session:
+    post:
+      tags:
+        - session
+      summary: Create a session for an account.
+      description: ""
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "401":
+          description: Unauthorized!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "404":
+          description: Account not found!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+        "500":
+          description: Internal server error!
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/session"
+servers:
+  - url: "http://localhost/v1"
+  - url: "https://localhost/v1"
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: "https://localhost:3000/authorize"
+          tokenUrl: "https://exemple.com/oauth/token"
+          scopes:
+            account: Grand access to all content and possibility to edit own content.
+            admin: All access of account and the power to change others posts
+  schemas:
+    error:
+      type: object
+      properties:
+        errorMessage:
+          type: string
+    postAccount:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: foo@gmail.com
+        password:
+          type: string
+          format: password
+      required:
+        - password
+        - email
+    recipes:
+      type: object
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+        imageId:
+          type: string
+          format: path
+        updatedAt:
+          type: string
+      required:
+        - accountId
+    getComments:
+      type: object
+      properties:
+        accountId:
+          type: string
+        recipeId:
+          type: string
+        content:
+          type: string
+        commentId:
+          type: string
+        updatedAt:
+          type: string
+    postComments:
+      type: object
+      properties:
+        content:
+          type: string
+        recipeId:
+          type: string
+      required:
+        - accountId
+        - recipeId
+    accounts:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        imageId:
+          type: string
+    getVotes:
+      type: object
+      properties:
+        title:
+          type: string
+        recipeId:
+          type: string
+        vote:
+          type: integer
+          format: smallint
+    postVotes:
+      type: object
+      properties:
+        accountId:
+          type: string
+        recipeId:
+          type: string
+        vote:
+          type: integer
+          format: smallint
+      required:
+        - accountId
+        - recipeId
+        - vote
+    session:
+      type: object
+      properties:
+        grant_Type:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - grant_Type
+        - username
+        - password
