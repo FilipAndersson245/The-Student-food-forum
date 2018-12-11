@@ -6,7 +6,7 @@ info:
   description: |
     A forum API where accounts can post recipts about food and comment to them.
     The application uses bearer token to authenticate requests.
-    This token is created by requests to the /sessionrouter.
+    This token is created by requests to the /session router.
 
     All data is bound to the account and if ever deleted all other data will be cascaded.
     Comments are bound to the recipe and will also cascade if recipe is deleted.
@@ -597,7 +597,7 @@ paths:
       tags:
         - "session"
       summary: "Create a session for an account."
-      description: "Used to create a new session. If successful it will returns a JWT that should be sent be should be sent on specified requests."
+      description: "Used to create a new session. If successful it will returns a JWT that should be sent to specified requests."
       consumes:
         - "application/json"
       produces:
