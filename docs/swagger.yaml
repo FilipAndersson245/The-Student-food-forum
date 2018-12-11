@@ -561,7 +561,9 @@ paths:
       tags:
         - "votes"
       summary: "Create a vote from an account."
-      description: ""
+      description: |
+       "Used to create a vote from an account to a recipe.
+        If a vote already exists, the preexisting vote will be updated with the new vote value." 
       parameters:
         - in: "header"
           name: "Authorization"
