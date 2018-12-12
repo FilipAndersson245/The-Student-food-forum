@@ -67,6 +67,8 @@ recipesRouter.post("/", upload, async (req, res) => {
     return res.status(404).json({ errorMessage: "Cannot find account!" });
   }
 
+  console.log(upload);
+
   if (req.file) {
     if (!/^image\/(jpe?g|png|gif)$/i.test(req.file.mimetype)) {
       return res.status(400).json({ errorMessage: "Expected image file!" });
