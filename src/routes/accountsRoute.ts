@@ -2,12 +2,12 @@ import express = require("express");
 import { Accounts } from "../db/entity/accounts";
 import { getRepository } from "typeorm";
 import { sqlpromiseHandler } from "../db/dbHelpers";
-// import { hash } from "bcrypt";
+import { hash } from "bcrypt";
 import { authenticateAndRespondWithMessages } from "../autentication";
 import multer from "multer";
 import { uploadAccountImageToS3, deleteAccountImageInS3 } from "../s3";
 import { v4 } from "uuid";
-// const saltRounds = 7;
+const saltRounds = 7;
 
 const accountsRouter = express.Router();
 
@@ -42,8 +42,7 @@ accountsRouter.post("/", async (req, res) => {
   if (req.body.email && req.body.nickname && req.body.password) {
     account.email = req.body.email;
     account.nickname = req.body.nickname;
-    // account.passwordHash = await hash(req.body.password, saltRounds);
-    account.passwordHash = "";
+    account.passwordHash = await hash(req.body.password, saltRounds);
     account.imageId = v4();
 
     const { data, error } = await sqlpromiseHandler(repo.insert(account));
@@ -103,8 +102,7 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
   const values = {
     ...(req.body.nickname ? { nickname: req.body.nickname } : null),
     ...(req.body.password
-      ? // ? { passwordHash: await hash(req.body.password, saltRounds) }
-        { passwordHash: "" }
+      ? { passwordHash: await hash(req.body.password, saltRounds) }
       : null)
   };
 

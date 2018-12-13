@@ -10,5 +10,5 @@ export const GetConnection = async () =>
     logging: !!process.env.LOGGING,
     entities: [process.env.TYPEORM_ENTITIES!],
     database: process.env.TYPEORM_DATABASE,
-    synchronize: false // Run this update db (true when pushing update)
+    synchronize: true // Run this update db (true when pushing update)
   }).catch(console.error);
