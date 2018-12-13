@@ -15,7 +15,7 @@ commentsRouter.get("/", async (req, res) => {
   }
   const query = getRepository(Comments).find({
     select: ["id", "content", "updatedAt"],
-    order: { updatedAt: "ASC" }, // Change doc
+    order: { updatedAt: "ASC" },
     skip: parseInt(req.query.offset, 10) || 0,
     take: parseInt(req.query.limit, 10) || 25
   });
