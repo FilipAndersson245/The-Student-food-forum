@@ -34,7 +34,7 @@ accountsRouter.get("/", async (req, res) => {
   // tslint:disable-next-line:prefer-const
   let { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   } else {
     data = data!.map((currentData) => {
       return {
@@ -59,9 +59,9 @@ accountsRouter.post("/", async (req, res) => {
     const { data, error } = await sqlpromiseHandler(repo.insert(account));
     if (error) {
       if (error.errno === 1062) {
-        res.status(409).json({ errorMessage: "Email already taken!" });
+        res.status(409).json({ error: "Email already taken!" });
       }
-      res.status(500).json({ errorMessage: "Internal server error!" });
+      res.status(500).json({ error: "Internal server error!" });
     } else {
       res.setHeader("location", `/accounts${data!.identifiers[0].id}`);
       res.status(201).send();
@@ -69,14 +69,14 @@ accountsRouter.post("/", async (req, res) => {
   } else {
     res
       .status(400)
-      .json({ errorMessage: "Missing required input parameter in body!" });
+      .json({ error: "Missing required input parameter in body!" });
   }
 });
 
 accountsRouter.patch("/:accountId", upload, async (req, res) => {
   const accountId: string | undefined = req.params.accountId;
   if (!accountId) {
-    return res.status(400).json({ errorMessage: "Missing parameter!" });
+    return res.status(400).json({ error: "Missing parameter!" });
   }
 
   if (!authenticateAndRespondWithMessages(req, res, accountId)) {
@@ -87,12 +87,12 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
   try {
     account = await getRepository(Accounts).findOneOrFail(accountId);
   } catch (error) {
-    return res.status(401).json({ errorMessage: "Cannot find account!" });
+    return res.status(401).json({ error: "Cannot find account!" });
   }
 
   if (req.file) {
     if (!/^image\/(jpe?g|png|gif)$/i.test(req.file.mimetype)) {
-      return res.status(400).json({ errorMessage: "Expected image file!" });
+      return res.status(400).json({ error: "Expected image file!" });
     }
     try {
       await uploadAccountImageToS3(
@@ -106,7 +106,7 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
         }
       );
     } catch {
-      return res.status(500).json({ errorMessage: "Image upload failed!" });
+      return res.status(500).json({ error: "Image upload failed!" });
     }
   }
 
@@ -118,7 +118,7 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
   };
 
   if (Object.keys(values).length === 0) {
-    return res.status(400).json({ errorMessage: "Missing parameters!" });
+    return res.status(400).json({ error: "Missing parameters!" });
   }
 
   const repo = getRepository(Accounts);
@@ -130,7 +130,7 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
     .execute();
   const { error } = await sqlpromiseHandler(query);
   if (error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   } else {
     return res.status(200).send();
   }
@@ -139,7 +139,7 @@ accountsRouter.patch("/:accountId", upload, async (req, res) => {
 accountsRouter.delete("/:accountId", async (req, res) => {
   const accountId: string | undefined = req.params.accountId;
   if (!accountId) {
-    return res.status(400).json({ errorMessage: "Missing parameter!" });
+    return res.status(400).json({ error: "Missing parameter!" });
   }
 
   if (!authenticateAndRespondWithMessages(req, res)) {
@@ -150,7 +150,7 @@ accountsRouter.delete("/:accountId", async (req, res) => {
   try {
     account = await getRepository(Accounts).findOneOrFail(accountId);
   } catch {
-    return res.status(404).json({ errorMessage: "Account was not found!" });
+    return res.status(404).json({ error: "Account was not found!" });
   }
   try {
     deleteAccountImageInS3(account.imageId, (error) => {
@@ -159,7 +159,7 @@ accountsRouter.delete("/:accountId", async (req, res) => {
       }
     });
   } catch {
-    return res.status(500).json({ errorMessage: "Failed deleting image!" });
+    return res.status(500).json({ error: "Failed deleting image!" });
   }
 
   const repo = getRepository(Accounts);
@@ -171,7 +171,7 @@ accountsRouter.delete("/:accountId", async (req, res) => {
 
   const result = await sqlpromiseHandler(query);
   if (result.error) {
-    return res.status(500).json({ errorMessage: "Deletion failed!" });
+    return res.status(500).json({ error: "Deletion failed!" });
   } else {
     return res.status(200).send();
   }

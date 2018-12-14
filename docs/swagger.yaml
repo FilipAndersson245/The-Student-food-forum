@@ -1,7 +1,7 @@
 swagger: "2.0"
 
 info:
-  version: 1.0.0
+  version: 1.0.16
   title: "The Student Food forum"
   description: |
     A forum API where accounts can post recipts about food and comment to them.
@@ -13,8 +13,7 @@ info:
 
   contact:
     name: "Filip Andersson, Marcus Gullstrand"
-host: "localhost"
-basePath: "/v1"
+host: "thesff.us-east-1.elasticbeanstalk.com"
 tags:
   - name: "session"
   - name: "recipes"
@@ -562,8 +561,8 @@ paths:
         - "votes"
       summary: "Create a vote from an account."
       description: |
-       "Used to create a vote from an account to a recipe.
-        If a vote already exists, the preexisting vote will be updated with the new vote value." 
+        "Used to create a vote from an account to a recipe.
+         If a vote already exists, the preexisting vote will be updated with the new vote value."
       parameters:
         - in: "header"
           name: "Authorization"
@@ -723,6 +722,8 @@ definitions:
       vote:
         type: integer
         format: smallint
+        example:
+          values: '"vote: 0", "vote: 1", "vote: -1"'
     required:
       - accountId
       - recipeId

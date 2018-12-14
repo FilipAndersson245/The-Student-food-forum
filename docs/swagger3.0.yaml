@@ -2,18 +2,25 @@ openapi: 3.0.0
 info:
   version: 1.0.16
   title: The Student Food forum
-  description: A forum API where accounts can post recipts about food and comment to them.
+  description: >
+    A forum API where accounts can post recipts about food and comment to them.  
+
+    The application uses bearer token to authenticate requests.
+    This token is created by requests to the /session router.
+
+    All data is bound to the account and if ever deleted all other data will be
+    cascaded.
+    Comments are bound to the recipe and will also cascade if recipe is deleted.
   contact:
-    name: Filip Andersson
-  license:
-    name: MIT
-    url: "http://opensource.org/licenses/MIT"
+    name: "Filip Andersson, Marcus Gullstrand"
 tags:
-  - name: accounts
+  - name: session
   - name: recipes
+  - name: accounts
   - name: comments
   - name: votes
-  - name: session
+servers:
+  - url: thesff.us-east-1.elasticbeanstalk.com
 paths:
   /accounts:
     get:
@@ -43,7 +50,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            application/json:
               schema:
                 type: array
                 items:
@@ -51,7 +58,7 @@ paths:
         "500":
           description: Internal server error!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
     post:
@@ -100,6 +107,12 @@ paths:
       summary: Edit given account.
       description: ""
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - name: accountId
           in: path
           description: The id of the account.
@@ -157,9 +170,15 @@ paths:
         Deleting a user will delete all of the users uploaded content (account,
         recipes, comments and votes).
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - name: accountId
           in: path
-          description: accountId
+          description: Is of the account
           required: true
           schema:
             type: string
@@ -207,23 +226,6 @@ paths:
           schema:
             type: string
         - in: query
-          name: tags
-          description: List of tags to be filterd by.
-          schema:
-            type: array
-            items:
-              type: string
-        - in: query
-          name: order
-          description: How recipes are sorted.
-          schema:
-            type: string
-            enum:
-              - alphabetical
-              - time
-              - rating
-            default: rating
-        - in: query
           name: limit
           description: How many recipes will be returned.
           schema:
@@ -239,7 +241,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            application/json:
               schema:
                 type: array
                 items:
@@ -247,13 +249,20 @@ paths:
         "500":
           description: Internal server error
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
     post:
       tags:
         - recipes
       summary: Create new recipes.
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
       description: ""
       responses:
         "201":
@@ -316,6 +325,12 @@ paths:
       summary: Edit a given post.
       description: ""
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - name: recipeId
           in: path
           description: The id of the recipe.
@@ -373,6 +388,12 @@ paths:
       summary: Delete a given recipes.
       description: ""
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - name: recipeId
           in: path
           description: RecipeId
@@ -420,15 +441,6 @@ paths:
           schema:
             type: string
         - in: query
-          name: order
-          description: How accounts are returned accounts are sorted.
-          schema:
-            type: string
-            enum:
-              - alphabetical
-              - time
-            default: time
-        - in: query
           name: limit
           description: How many comments will be returned.
           schema:
@@ -444,7 +456,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            application/json:
               schema:
                 type: array
                 items:
@@ -452,13 +464,13 @@ paths:
         "400":
           description: Missing parameter!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
         "500":
           description: Internal server error!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
     post:
@@ -466,6 +478,13 @@ paths:
         - comments
       summary: Create a new comment.
       description: ""
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
       responses:
         "201":
           description: Comment successfully created!
@@ -499,6 +518,12 @@ paths:
       summary: Edit a given account.
       description: ""
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - name: commentId
           in: path
           description: comment Id
@@ -541,6 +566,12 @@ paths:
       summary: Delete a given account.
       description: ""
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - name: commentId
           in: path
           description: comment id
@@ -575,21 +606,17 @@ paths:
       summary: Get votes from one user.
       description: Gets all the users own votes
       parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
         - in: query
           name: accountId
           required: true
           schema:
             type: string
-        - in: query
-          name: order
-          description: How votes are sorted.
-          schema:
-            type: string
-            enum:
-              - alphabetical
-              - time
-              - rating
-            default: rating
         - in: query
           name: limit
           description: How many votes will be returned.
@@ -627,7 +654,16 @@ paths:
       tags:
         - votes
       summary: Create a vote from an account.
-      description: ""
+      description: |
+        "Used to create a vote from an account to a recipe.
+         If a vote already exists, the preexisting vote will be updated with the new vote value."
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT Access Token
+          required: true
+          schema:
+            type: string
       responses:
         "201":
           description: Vote created!
@@ -662,32 +698,38 @@ paths:
       tags:
         - session
       summary: Create a session for an account.
-      description: ""
+      description: >-
+        Used to create a new session. If successful it will returns a JWT that
+        should be sent to specified requests.
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sessionResponse"
         "400":
           description: Bad Request!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
         "401":
           description: Unauthorized!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
         "404":
           description: Account not found!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
         "500":
           description: Internal server error!
           content:
-            "*/*":
+            application/json:
               schema:
                 $ref: "#/components/schemas/error"
       requestBody:
@@ -695,25 +737,12 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/session"
-servers:
-  - url: "http://localhost/v1"
-  - url: "https://localhost/v1"
 components:
-  securitySchemes:
-    OAuth2:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: "https://localhost:3000/authorize"
-          tokenUrl: "https://exemple.com/oauth/token"
-          scopes:
-            account: Grand access to all content and possibility to edit own content.
-            admin: All access of account and the power to change others posts
   schemas:
     error:
       type: object
       properties:
-        errorMessage:
+        error:
           type: string
     postAccount:
       type: object
@@ -815,3 +844,10 @@ components:
         - grant_Type
         - username
         - password
+    sessionResponse:
+      type: object
+      properties:
+        auth:
+          type: string
+        token:
+          type: string

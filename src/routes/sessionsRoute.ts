@@ -12,11 +12,11 @@ sessionRouter.post("/", async (req, res) => {
   const password: string = req.body.password;
   const grantType: string = req.body.grant_type;
   if (!username || !password || !grantType) {
-    res.status(400).json({ errorMessage: "Missing parameters!" });
+    res.status(400).json({ error: "Missing parameters!" });
     return;
   }
   if (grantType !== "password") {
-    res.status(400).json({ errorMessage: "Grant type not supported!" });
+    res.status(400).json({ error: "Grant type not supported!" });
     return;
   }
   const query = getRepository(Accounts)
@@ -27,11 +27,11 @@ sessionRouter.post("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    res.status(500).json({ errorMessage: "Internal server error!" });
+    res.status(500).json({ error: "Internal server error!" });
     return;
   }
   if (!data) {
-    res.status(404).json({ errorMessage: "Account does not exist!" });
+    res.status(404).json({ error: "Account does not exist!" });
     return;
   }
   if (await compare(password, data!.passwordHash)) {
@@ -45,7 +45,7 @@ sessionRouter.post("/", async (req, res) => {
     res.status(200).json({ auth: true, token });
     return;
   } else {
-    res.status(401).json({ errorMessage: "Bad login attempt!" });
+    res.status(401).json({ error: "Bad login attempt!" });
     return;
   }
 });

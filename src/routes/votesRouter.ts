@@ -11,7 +11,7 @@ const votesRouter = express.Router();
 votesRouter.get("/", async (req, res) => {
   const accountId: string | undefined = req.query.accountId;
   if (!accountId) {
-    return res.status(400).json({ errorMessage: "Missing parameter!" });
+    return res.status(400).json({ error: "Missing parameter!" });
   }
 
   if (!authenticateAndRespondWithMessages(req, res, accountId)) {
@@ -27,7 +27,7 @@ votesRouter.get("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   }
   return res.status(200).json(data);
 });
@@ -46,13 +46,13 @@ votesRouter.post("/", async (req, res) => {
     vote > 1 ||
     vote < -1
   ) {
-    return res.status(400).json({ errorMessage: "Missing requestParameter!" });
+    return res.status(400).json({ error: "Missing requestParameter!" });
   }
 
   if (token.sub !== accountsId) {
     return res
       .status(401)
-      .json({ errorMessage: "Cannot create vote for other accounts!" });
+      .json({ error: "Cannot create vote for other accounts!" });
   }
 
   const voteObj = new Votes();
@@ -61,12 +61,12 @@ votesRouter.post("/", async (req, res) => {
     voteObj.recipes = await getRepository(Recipes).findOneOrFail(recipesId);
     voteObj.vote = vote;
   } catch {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   }
   const query = getRepository(Votes).save(voteObj);
   const { error } = await sqlpromiseHandler(query);
   if (error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   }
   return res.status(201).send();
 });

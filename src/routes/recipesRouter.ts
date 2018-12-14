@@ -34,7 +34,7 @@ recipesRouter.get("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    res.status(500).json({ errorMessage: "Internal server error!" });
+    res.status(500).json({ error: "Internal server error!" });
   } else {
     const dataWithVotesAndImage = data!.map((selectedRecepts) => {
       let vote = 0;
@@ -51,7 +51,7 @@ recipesRouter.get("/", async (req, res) => {
 recipesRouter.post("/", upload, async (req, res) => {
   const accountId: string | undefined = req.body.accountId;
   if (!accountId) {
-    return res.status(400).json({ errorMessage: "Missing parameter!" });
+    return res.status(400).json({ error: "Missing parameter!" });
   }
 
   if (!authenticateAndRespondWithMessages(req, res, accountId)) {
@@ -59,7 +59,7 @@ recipesRouter.post("/", upload, async (req, res) => {
   }
 
   if (!req.body.title || !req.body.content) {
-    return res.status(400).json({ errorMessage: "Missing parameters!" });
+    return res.status(400).json({ error: "Missing parameters!" });
   }
   const repo = getRepository(Recipes);
   const recipe = new Recipes();
@@ -67,12 +67,12 @@ recipesRouter.post("/", upload, async (req, res) => {
   try {
     recipe.accounts = await getRepository(Accounts).findOneOrFail(accountId);
   } catch (error) {
-    return res.status(404).json({ errorMessage: "Cannot find account!" });
+    return res.status(404).json({ error: "Cannot find account!" });
   }
 
   if (req.file) {
     if (!/^image\/(jpe?g|png|gif)$/i.test(req.file.mimetype)) {
-      return res.status(400).json({ errorMessage: "Expected image file!" });
+      return res.status(400).json({ error: "Expected image file!" });
     }
     try {
       const generatedUUID = v4();
@@ -88,7 +88,7 @@ recipesRouter.post("/", upload, async (req, res) => {
       );
       recipe.imageId = generatedUUID;
     } catch {
-      return res.status(500).json({ errorMessage: "Image upload failed!" });
+      return res.status(500).json({ error: "Image upload failed!" });
     }
   }
 
@@ -97,7 +97,7 @@ recipesRouter.post("/", upload, async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(repo.insert(recipe));
   if (error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   } else {
     res.setHeader("location", `/recipes?id=${data!.identifiers[0].id}`);
     return res.status(201).send();
@@ -107,7 +107,7 @@ recipesRouter.post("/", upload, async (req, res) => {
 recipesRouter.patch("/:recipeId", upload, async (req, res) => {
   const recipeId = req.params.recipeId;
   if (!recipeId) {
-    return res.status(400).json({ errorMessage: "Missing parameter!" });
+    return res.status(400).json({ error: "Missing parameter!" });
   }
 
   const token = authenticateAndRespondWithMessages(req, res);
@@ -116,7 +116,7 @@ recipesRouter.patch("/:recipeId", upload, async (req, res) => {
   }
 
   if (Object.keys(req.body).length === 0) {
-    return res.status(400).json({ errorMessage: "No changes sent!" });
+    return res.status(400).json({ error: "No changes sent!" });
   }
 
   let changedRecipe: Recipes;
@@ -126,18 +126,18 @@ recipesRouter.patch("/:recipeId", upload, async (req, res) => {
       relations: ["accounts"]
     });
   } catch {
-    return res.status(500).json({ errorMessage: "Failed to find recipe!" });
+    return res.status(500).json({ error: "Failed to find recipe!" });
   }
 
   if (!(changedRecipe.accounts.id === token.sub)) {
     return res
       .status(401)
-      .json({ errorMessage: "This recipe does not belong to this account!" });
+      .json({ error: "This recipe does not belong to this account!" });
   }
 
   if (req.file) {
     if (!/^image\/(jpe?g|png|gif)$/i.test(req.file.mimetype)) {
-      return res.status(400).json({ errorMessage: "Expected image file!" });
+      return res.status(400).json({ error: "Expected image file!" });
     }
     try {
       await uploadRecipeImageToS3(
@@ -151,7 +151,7 @@ recipesRouter.patch("/:recipeId", upload, async (req, res) => {
         }
       );
     } catch {
-      return res.status(500).json({ errorMessage: "Image upload failed!" });
+      return res.status(500).json({ error: "Image upload failed!" });
     }
   }
 
@@ -165,7 +165,7 @@ recipesRouter.patch("/:recipeId", upload, async (req, res) => {
   );
 
   if (error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   } else {
     return res.status(200).send();
   }
@@ -174,7 +174,7 @@ recipesRouter.patch("/:recipeId", upload, async (req, res) => {
 recipesRouter.delete("/:recipeId", async (req, res) => {
   const recipeId = req.params.recipeId;
   if (!recipeId) {
-    return res.status(400).json({ errorMessage: "Missing parameter!" });
+    return res.status(400).json({ error: "Missing parameter!" });
   }
 
   const token = authenticateAndRespondWithMessages(req, res);
@@ -189,13 +189,13 @@ recipesRouter.delete("/:recipeId", async (req, res) => {
       relations: ["accounts"]
     });
   } catch {
-    return res.status(404).json({ errorMessage: "Failed to find recipe!" });
+    return res.status(404).json({ error: "Failed to find recipe!" });
   }
 
   if (!(toBeDeletedRecipe.accounts.id === token.sub)) {
     return res
       .status(401)
-      .json({ errorMessage: "This recipe does not belong to this account!" });
+      .json({ error: "This recipe does not belong to this account!" });
   }
 
   try {
@@ -205,13 +205,13 @@ recipesRouter.delete("/:recipeId", async (req, res) => {
       }
     });
   } catch {
-    return res.status(500).json({ errorMessage: "Failed deleting image!" });
+    return res.status(500).json({ error: "Failed deleting image!" });
   }
 
   const result = await sqlpromiseHandler(repo.delete(recipeId));
 
   if (result.error) {
-    return res.status(500).json({ errorMessage: "Internal server error!" });
+    return res.status(500).json({ error: "Internal server error!" });
   } else {
     return res.status(200).send();
   }
