@@ -604,11 +604,21 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - in: body
-          name: "session"
-          description: ""
-          schema:
-            $ref: "#/definitions/session"
+        - in: "header"
+          name: "grant_type"
+          description: "Bearer JWT Access Token"
+          type: string
+          required: true
+        - name: "username"
+          in: "formData"
+          description: "The id of the account."
+          type: "string"
+          required: true
+        - name: "password"
+          in: "formData"
+          type: "string"
+          description: "The password of the account."
+          required: true
       responses:
         200:
           description: "OK"
