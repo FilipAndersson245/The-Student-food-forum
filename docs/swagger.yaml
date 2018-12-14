@@ -600,12 +600,12 @@ paths:
       summary: "Create a session for an account."
       description: "Used to create a new session. If successful it will returns a JWT that should be sent to specified requests."
       consumes:
-        - "application/json"
+        - "application/x-www-form-urlencoded"
       produces:
         - "application/json"
       parameters:
         - in: body
-          name: "vote"
+          name: "session"
           description: ""
           schema:
             $ref: "#/definitions/session"
@@ -722,8 +722,7 @@ definitions:
       vote:
         type: integer
         format: smallint
-        example:
-          values: '"vote: 0", "vote: 1", "vote: -1"'
+        example: '"vote: 0", "vote: 1", "vote: -1"'
     required:
       - accountId
       - recipeId
