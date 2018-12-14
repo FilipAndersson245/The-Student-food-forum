@@ -6,7 +6,11 @@ import { authenticateAndRespondWithMessages } from "../autentication";
 import { Accounts } from "../db/entity/accounts";
 import { v4 } from "uuid";
 import multer from "multer";
-import { uploadRecipeImageToS3, deleteRecipeImageInS3 } from "../s3";
+import {
+  uploadRecipeImageToS3,
+  deleteRecipeImageInS3,
+  createLinkToS3FromId
+} from "../s3";
 
 const recipesRouter = express.Router();
 
@@ -30,18 +34,17 @@ recipesRouter.get("/", async (req, res) => {
 
   const { data, error } = await sqlpromiseHandler(query);
   if (error) {
-    console.log(error.errno);
     res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
-    const dataWithVotes = data!.map((selectedRecepts) => {
+    const dataWithVotesAndImage = data!.map((selectedRecepts) => {
       let vote = 0;
       selectedRecepts.votes.forEach((selectedVote) => {
         vote += selectedVote.vote;
       });
-      return { ...selectedRecepts, vote, votes: undefined };
+      const image = createLinkToS3FromId("recipes", selectedRecepts.imageId);
+      return { ...selectedRecepts, vote, image, votes: undefined };
     });
-    console.table(dataWithVotes);
-    res.status(200).json(dataWithVotes);
+    res.status(200).json(dataWithVotesAndImage);
   }
 });
 
@@ -157,14 +160,13 @@ recipesRouter.patch("/:recipeId", upload, async (req, res) => {
     ? req.body.content
     : changedRecipe.content;
 
-  const { data, error } = await sqlpromiseHandler(
+  const { error } = await sqlpromiseHandler(
     repo.update(changedRecipe.id, changedRecipe)
   );
 
   if (error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
-    console.log(data!.generatedMaps);
     return res.status(200).send();
   }
 });

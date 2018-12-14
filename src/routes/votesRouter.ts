@@ -29,12 +29,10 @@ votesRouter.get("/", async (req, res) => {
   if (error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   }
-  console.table(data);
   return res.status(200).json(data);
 });
 
 votesRouter.post("/", async (req, res) => {
-  console.table(req.body);
   const token = authenticateAndRespondWithMessages(req, res);
   if (!token) {
     return;
