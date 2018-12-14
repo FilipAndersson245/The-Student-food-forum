@@ -11,7 +11,6 @@ sessionRouter.post("/", async (req, res) => {
   const username: string = req.body.username;
   const password: string = req.body.password;
   const grantType: string = req.body.grant_type;
-  console.table(req.body);
   if (!username || !password || !grantType) {
     res.status(400).json({ errorMessage: "Missing parameters!" });
     return;

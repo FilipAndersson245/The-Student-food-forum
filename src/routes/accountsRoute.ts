@@ -5,7 +5,11 @@ import { sqlpromiseHandler } from "../db/dbHelpers";
 import { hash } from "bcrypt";
 import { authenticateAndRespondWithMessages } from "../autentication";
 import multer from "multer";
-import { uploadAccountImageToS3, deleteAccountImageInS3 } from "../s3";
+import {
+  uploadAccountImageToS3,
+  deleteAccountImageInS3,
+  createLinkToS3FromId
+} from "../s3";
 import { v4 } from "uuid";
 const saltRounds = 7;
 
@@ -27,10 +31,17 @@ accountsRouter.get("/", async (req, res) => {
     .take(parseInt(req.query.limit, 10) || 25)
     .getMany();
 
-  const { data, error } = await sqlpromiseHandler(query);
+  // tslint:disable-next-line:prefer-const
+  let { data, error } = await sqlpromiseHandler(query);
   if (error) {
     return res.status(500).json({ errorMessage: "Internal server error!" });
   } else {
+    data = data!.map((currentData) => {
+      return {
+        ...currentData,
+        image: createLinkToS3FromId("accounts", currentData.id)
+      };
+    });
     return res.status(200).json(data);
   }
 });

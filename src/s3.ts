@@ -1,5 +1,10 @@
 import { Credentials, S3, AWSError } from "aws-sdk";
 
+export const createLinkToS3FromId = (
+  type: "recipes" | "accounts",
+  id: string
+) => `https://s3.eu-west-2.amazonaws.com/sffbucket/${type}/${id}`;
+
 const awsCredentials = new Credentials(
   process.env.AWS_IAM_ACCESSKEY as string,
   process.env.AWS_IAM_SECRETACCESSKEY as string
