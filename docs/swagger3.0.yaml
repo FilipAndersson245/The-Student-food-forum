@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: 1.0.0
+  version: 1.0.16
   title: The Student Food forum
   description: A forum API where accounts can post recipts about food and comment to them.
   contact:
@@ -797,6 +797,7 @@ components:
         vote:
           type: integer
           format: smallint
+          values: '"vote: 0", "vote: 1", "vote: -1"'
       required:
         - accountId
         - recipeId
