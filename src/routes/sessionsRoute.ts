@@ -8,10 +8,10 @@ import { sign } from "jsonwebtoken";
 const sessionRouter = express.Router();
 
 sessionRouter.post("/", async (req, res) => {
-  const username: string = req.body.username;
+  const email: string = req.body.email;
   const password: string = req.body.password;
   const grantType: string = req.body.grant_type;
-  if (!username || !password || !grantType) {
+  if (!email || !password || !grantType) {
     res.status(400).json({ error: "Missing parameters!" });
     return;
   }
@@ -22,7 +22,7 @@ sessionRouter.post("/", async (req, res) => {
   const query = getRepository(Accounts)
     .createQueryBuilder("account")
     .select()
-    .where("account.nickname = :username", { username })
+    .where("account.email = :email", { email })
     .getOne();
 
   const { data, error } = await sqlpromiseHandler(query);
