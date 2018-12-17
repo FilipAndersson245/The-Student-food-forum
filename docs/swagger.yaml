@@ -604,9 +604,9 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - in: "header"
+        - in: "formData"
           name: "grant_type"
-          description: "Bearer JWT Access Token"
+          description: 'Should be set to "password"'
           type: string
           required: true
         - name: "username"
