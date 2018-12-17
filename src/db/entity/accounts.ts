@@ -20,7 +20,7 @@ export class Accounts {
   })
   public id!: string;
 
-  @Column({ type: "varchar", length: 32, unique: true })
+  @Column({ type: "varchar", length: 32 })
   public nickname!: string;
 
   @Column({ type: "varchar", length: 255, unique: true })
