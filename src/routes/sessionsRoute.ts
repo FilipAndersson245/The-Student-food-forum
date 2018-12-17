@@ -36,7 +36,7 @@ sessionRouter.post("/", async (req, res) => {
   }
   if (await compare(password, data!.passwordHash)) {
     const token = sign(
-      { sub: data!.id, name: data!.nickname },
+      { sub: data!.id, name: data!.email },
       process.env.TOKEN_SECRET!,
       {
         expiresIn: "5 days"
