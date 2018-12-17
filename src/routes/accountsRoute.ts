@@ -39,7 +39,7 @@ accountsRouter.get("/", async (req, res) => {
     data = data!.map((currentData) => {
       return {
         ...currentData,
-        image: createLinkToS3FromId("accounts", currentData.id)
+        image: createLinkToS3FromId("accounts", currentData.imageId)
       };
     });
     return res.status(200).json(data);
