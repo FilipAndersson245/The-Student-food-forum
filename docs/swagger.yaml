@@ -604,18 +604,18 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - in: "formData"
+        - in: "x-www-form-urlencoded"
           name: "grant_type"
           description: 'Should be set to "password"'
           type: string
           required: true
-        - name: "username"
-          in: "formData"
-          description: "The id of the account."
+        - name: "email"
+          in: "x-www-form-urlencoded"
+          description: "The email of the account."
           type: "string"
           required: true
         - name: "password"
-          in: "formData"
+          in: "x-www-form-urlencoded"
           type: "string"
           description: "The password of the account."
           required: true
